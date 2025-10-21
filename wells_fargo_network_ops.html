@@ -577,13 +577,11 @@
     </div>
 
     <script>
-        const conversation = [
-            {
-                role: "assistant",
-                text: "Welcome to Cisco Customer Intelligence for Wells Fargo. I'm your copilot across your Cisco estate (networking, security, collaboration, data center). Which persona would you like to use today?",
-                suggestions: ["Network Ops (Global)", "Security Ops (SOC)", "Procurement / Asset Mgmt", "Executive Overview"]
-            },
-            { role: "user", text: "Network Ops (Global)" },
+        let currentPersona = null;
+        let personaConversations = {};
+
+        // Network Ops Persona
+        personaConversations["Network Ops (Global)"] = [
             {
                 role: "assistant",
                 text: "Great. I've loaded your global Network Ops view. Where should I deliver critical alerts (outages, PSIRTs, EOL/EOS, contract risk)?",
@@ -728,6 +726,319 @@
             }
         ];
 
+        // Security Ops (SOC) Persona
+        personaConversations["Security Ops (SOC)"] = [
+            {
+                role: "assistant",
+                text: "Security Operations view loaded. I'm connected to SecureX, Firepower, Umbrella, ISE, and your SIEM. How can I help you today?",
+                suggestions: ["Show active threats", "Review security posture", "Check compliance status"]
+            },
+            { role: "user", text: "Show active threats" },
+            {
+                role: "assistant",
+                text: "Last 24h: 847 threats blocked. Active investigations: 3 medium-priority incidents. • Suspicious lateral movement detected: 10.45.22.18 → multiple targets (ongoing, quarantined). • Phishing campaign targeting Finance dept: 12 emails blocked, 2 delivered (users trained). • Umbrella blocked 341 malware callbacks from branch offices. Which incident should we investigate?",
+                suggestions: ["Investigate lateral movement", "Review phishing campaign details", "Analyze malware patterns"]
+            },
+            { role: "user", text: "Investigate lateral movement" },
+            {
+                role: "assistant",
+                text: "Lateral movement analysis: Source 10.45.22.18 (desktop, Charlotte office) attempted SMB connections to 23 servers in 8 minutes. ISE flagged device as non-compliant (outdated AV). Timeline: 03:14 UTC - First connection. 03:18 UTC - ISE quarantine triggered. 03:22 UTC - Device isolated to remediation VLAN. Recommended actions?",
+                suggestions: ["Run forensics scan", "Notify user & IT admin", "Create incident ticket"]
+            },
+            { role: "user", text: "Run forensics scan" },
+            {
+                role: "assistant",
+                text: "Forensics initiated via AMP for Endpoints. Preliminary findings: Scheduled task created 72h ago (suspicious PowerShell). Registry key modified (persistence mechanism). No data exfiltration detected. Machine appears to be initial compromise, not command-and-control. Recommend full reimaging. Create containment playbook?",
+                suggestions: ["Yes, create playbook", "Export to SIEM", "Escalate to IR team"]
+            },
+            { role: "user", text: "Yes, create playbook" },
+            {
+                role: "assistant",
+                text: "Playbook created: 1) Preserve forensic image (AMP), 2) Reimage device, 3) Force password reset for user, 4) Scan all servers in connection attempt list, 5) Review firewall logs for 72h window, 6) Update detection rules. Posted to SecureX 'Incident-Response' workspace and created ServiceNow INC ticket. Deploy playbook now or schedule?",
+                suggestions: ["Deploy immediately", "Schedule for off-hours", "Review first"]
+            },
+            { role: "user", text: "Deploy immediately" },
+            {
+                role: "assistant",
+                text: "Playbook executing. Step 1/6 complete (image preserved). Step 2/6 in progress (SCCM reimage queued). User notified via email. IT admin (Charlotte) assigned ticket. ETA for full completion: 4 hours. Alert me when done or if issues arise?",
+                suggestions: ["Yes, alert on completion", "No notifications needed"]
+            },
+            { role: "user", text: "Yes, alert on completion" },
+            {
+                role: "assistant",
+                text: "Set. Now, security posture update: Firepower detected 3 IPS signatures firing on Internet edge - possible reconnaissance. Umbrella DNS security score: 94/100 (down 2 points from suspicious domain lookups). Zero Trust maturity: 67% - ISE deployment at 89% coverage, MFA at 78% adoption. What should we address?",
+                suggestions: ["Investigate reconnaissance activity", "Review suspicious domains", "Improve Zero Trust coverage"]
+            },
+            { role: "user", text: "Investigate reconnaissance activity" },
+            {
+                role: "assistant",
+                text: "Reconnaissance analysis: 3 external IPs scanning ports 22, 443, 3389 across public-facing assets. Source: 185.220.x.x (Tor exit nodes). Targets: VPN gateways, web servers. No successful connections. Firepower blocked 2,347 attempts in 6h. Pattern matches APT scanning behavior. Recommend geo-blocking or enhanced monitoring?",
+                suggestions: ["Enable geo-blocking for Tor", "Create threat hunt", "Just monitor for now"]
+            },
+            { role: "user", text: "Create threat hunt" },
+            {
+                role: "assistant",
+                text: "Threat hunt initiated: Searching for similar patterns across all perimeter devices (last 30d). Query running against Firewall logs, Proxy logs, VPN auth attempts, and WAF events. Results in ~90 seconds. While that runs, vulnerability update: 14 critical CVEs published this week, 8 apply to your environment (Catalyst, ASA, FMC). Want the breakdown?",
+                suggestions: ["Yes, show CVE breakdown", "Skip to hunt results"]
+            },
+            { role: "user", text: "Yes, show CVE breakdown" },
+            {
+                role: "assistant",
+                text: "Critical CVEs: • CVE-2025-12345 (Catalyst 9K): RCE via web UI - 143 devices exposed. Patch: 17.9.5a (available). • CVE-2025-12346 (ASA): Authentication bypass - 38 devices. Urgent patch required. • CVE-2025-12347 (FMC): Privilege escalation - 4 devices. Workaround: disable guest accounts (applied). Remediation priority?",
+                suggestions: ["Patch ASA first (auth bypass)", "Patch Catalyst 9K fleet", "Show me exposure map"]
+            },
+            { role: "user", text: "Patch ASA first (auth bypass)" },
+            {
+                role: "assistant",
+                text: "Smart choice - auth bypass is highest risk. ASA patching plan: 38 appliances across 12 sites. Downtime per device: ~6 minutes. Suggested sequence: Dev/Test (4 devices) → Regional offices (24) → HQ datacenters (10). Maintenance window: Sat 02:00-06:00 local per timezone. HA pairs will failover gracefully. Approve plan?",
+                suggestions: ["Approve and schedule", "Adjust sequence", "Need executive signoff"]
+            },
+            { role: "user", text: "Approve and schedule" },
+            {
+                role: "assistant",
+                text: "ASA patching scheduled. Change tickets created in ServiceNow with rollback procedures. Webex notifications sent to SecOps and NetOps teams. Pre-flight checks: config backups, HA sync verification, traffic baselines captured. Threat hunt results are ready - found 7 prior reconnaissance events from same infrastructure. Investigate?",
+                suggestions: ["Yes, show details", "Export for later review"]
+            },
+            { role: "user", text: "Yes, show details" },
+            {
+                role: "assistant",
+                text: "Threat hunt findings: Same Tor infrastructure scanned you 7 times over 30d, escalating in frequency. Targets evolved: early scans hit generic ports; recent scans probed specific Cisco services (SSH on 22, HTTPS on 443). Hypothesis: adversary fingerprinting your environment. No breaches detected. Recommend adding these IPs to global blocklist and enabling Cisco Talos threat feeds?",
+                suggestions: ["Yes, enable Talos feeds", "Just block these IPs", "Create watchlist only"]
+            },
+            { role: "user", text: "Yes, enable Talos feeds" },
+            {
+                role: "assistant",
+                text: "Talos threat intelligence enabled across Firepower, Umbrella, and email security. Auto-blocking configured for high-confidence threats. Retrospective analysis running on 90d of logs. You'll receive a summary of newly-identified threats tomorrow. Compliance check: SOC2 audit is in 3 weeks - security controls at 96% compliance. Review gaps?",
+                suggestions: ["Show compliance gaps", "Generate SOC2 report", "We're good for now"]
+            },
+            { role: "user", text: "Show compliance gaps" },
+            {
+                role: "assistant",
+                text: "Compliance gaps (4% remaining): • Log retention: 2 Firepower devices not forwarding to SIEM (config drift). • MFA enrollment: 78/100 privileged accounts still on password-only. • Encryption: 6 S3 buckets missing encryption-at-rest. • Access reviews: 3 quarterly reviews overdue. Priority fix?",
+                suggestions: ["Fix log retention now", "Push MFA enrollment", "All critical - create plan"]
+            },
+            { role: "user", text: "All critical - create plan" },
+            {
+                role: "assistant",
+                text: "Comprehensive remediation plan: Week 1: Fix logging (2h effort), Week 1: MFA enforcement campaign (HR comms + IT enforcement), Week 2: S3 encryption (automated via Terraform), Week 3: Complete access reviews (send reminders to managers). Assigned owners, scheduled check-ins. Slack/Webex updates every 48h. Launch remediation?",
+                suggestions: ["Launch now", "Review with CISO first"]
+            },
+            { role: "user", text: "Launch now" },
+            {
+                role: "assistant",
+                text: "Remediation launched. Tasks assigned in ServiceNow. Kickoff emails sent. Daily standup scheduled in Webex 'SecOps-Compliance' space. I'll monitor progress and escalate blockers. Anything else I can help with today?",
+                suggestions: ["Run threat simulation", "Check endpoint health", "We're done"]
+            },
+            { role: "user", text: "We're done" },
+            {
+                role: "assistant",
+                text: "Great session. I'll keep watch on the playbook execution, ASA patching, and remediation tasks. You'll get alerts on any status changes. Stay secure!"
+            }
+        ];
+
+        // Procurement / Asset Mgmt Persona
+        personaConversations["Procurement / Asset Mgmt"] = [
+            {
+                role: "assistant",
+                text: "Procurement and Asset Management view loaded. I'm tracking 18,642 assets, 347 active contracts, and $47.2M in annual spend. What would you like to focus on?",
+                suggestions: ["Contract renewals", "License optimization", "EOL/EOS assets"]
+            },
+            { role: "user", text: "Contract renewals" },
+            {
+                role: "assistant",
+                text: "Contract renewal pipeline: • Expiring in 30 days: 8 contracts ($2.4M total). • Expiring in 90 days: 23 contracts ($8.7M). • At risk (no PO): 3 contracts ($890K). Top priority: SmartNet for 120 Catalyst 9K switches (expires in 47 days, $423K). Want to see renewal options?",
+                suggestions: ["Show SmartNet options", "Review at-risk contracts", "See full 90-day pipeline"]
+            },
+            { role: "user", text: "Show SmartNet options" },
+            {
+                role: "assistant",
+                text: "SmartNet renewal for 120x Catalyst 9K: • Option A: 1-year, $423K (current rate). • Option B: 3-year, $1.18M ($393K/yr, 7% discount). • Option C: 5-year co-term, $1.85M ($370K/yr, 12.5% discount + simplified renewals). All options include 24x7 support, advance hardware replacement, and software updates. Recommendation?",
+                suggestions: ["Go with 5-year co-term", "Need budget approval first", "Compare with competitors"]
+            },
+            { role: "user", text: "Go with 5-year co-term" },
+            {
+                role: "assistant",
+                text: "Excellent choice - $265K savings over 5 years plus operational efficiency. I've drafted the quote with co-term date aligned to your fiscal year-end. Next steps: 1) Submit for Finance approval, 2) Route to IT Director signoff, 3) Generate PO, 4) Process with Cisco. Shall I route for approvals?",
+                suggestions: ["Yes, route for approval", "Add other renewals first", "Let me review quote"]
+            },
+            { role: "user", text: "Yes, route for approval" },
+            {
+                role: "assistant",
+                text: "Approval workflow initiated: Finance (Sarah Chen) → IT Director (Mike Rodriguez) → Procurement VP (you). Email notifications sent with cost-benefit analysis attached. SLA: 5 business days per approver. I'll nudge at 3 days if no response. Now, license optimization: I found $637K in savings opportunities. Interested?",
+                suggestions: ["Yes, show me", "Later", "Focus on at-risk contracts"]
+            },
+            { role: "user", text: "Yes, show me" },
+            {
+                role: "assistant",
+                text: "License optimization opportunities: • Umbrella SIG: 820 inactive licenses ($246K/yr waste). Recommend reclaim + rightsize. • DNA Advantage: 45 excess licenses ($89K/yr). • Webex Calling: 127 licenses unused for 6+ months ($38K/yr). • Duo MFA: True-up shows 200 over-deployment ($42K/yr). • Meraki LIC: 67 cameras decommissioned, still licensed ($18K/yr). Total potential savings: $433K annually. Start with Umbrella?",
+                suggestions: ["Optimize Umbrella first", "Reclaim all inactive licenses", "Show me true-up details"]
+            },
+            { role: "user", text: "Optimize Umbrella first" },
+            {
+                role: "assistant",
+                text: "Umbrella SIG deep-dive: 2,180 licenses purchased. 1,360 actively used. 820 inactive (users terminated or not consuming). Recommendation: Reclaim 820, purchase 200 additional for growth = net 620 reduction. New annual cost: $1.78M (was $2.03M). Savings: $246K/yr. I can auto-submit license adjustment to Cisco Smart Licensing portal. Proceed?",
+                suggestions: ["Yes, submit adjustment", "Verify inactive list first", "Talk to IT first"]
+            },
+            { role: "user", text: "Yes, submit adjustment" },
+            {
+                role: "assistant",
+                text: "License adjustment submitted to Cisco. Confirmation #SL-2025-98472. Reclaimed licenses will be available for reallocation in 24-48h. Finance will see credit on next invoice (~$20.5K monthly reduction). Moving to DNA Advantage: 345 licensed, 300 actively used. Same approach - reclaim excess?",
+                suggestions: ["Yes, reclaim DNA excess", "Hold DNA licenses for projects", "Skip to Webex"]
+            },
+            { role: "user", text: "Yes, reclaim DNA excess" },
+            {
+                role: "assistant",
+                text: "DNA Advantage: Reclaiming 45 excess licenses. Annual savings: $89K. Adjustment submitted (SL-2025-98473). Cumulative savings so far: $335K/yr. Now EOL/EOS tracking: 67 devices hit End-of-Life status, 22 hit End-of-Support in next 6 months. Budget impact: $1.8M for refresh. Want the breakdown by device type?",
+                suggestions: ["Show EOL breakdown", "What's the refresh priority?", "Compare refresh vs extend support"]
+            },
+            { role: "user", text: "Show EOL breakdown" },
+            {
+                role: "assistant",
+                text: "EOL/EOS breakdown: • Catalyst 3750X: 28 switches (EOS Jun 2025). Refresh cost: $420K. • ASA 5515: 18 firewalls (EOL now). Refresh to FTD: $675K. • UCS C220 M4: 14 servers (EOS Aug 2025). Refresh cost: $385K. • Nexus 5548: 7 switches (EOL now). Move to 9K: $320K. Total: $1.8M. I can create refresh roadmap with phased budget approach. Interested?",
+                suggestions: ["Yes, create roadmap", "Explore extended support costs", "Just replace critical (ASA, Nexus)"]
+            },
+            { role: "user", text: "Yes, create roadmap" },
+            {
+                role: "assistant",
+                text: "Phased refresh roadmap: Q1 2025: ASA → FTD migration ($675K) - highest security risk. Q2 2025: Nexus 5K → 9K ($320K) - performance bottleneck. Q3 2025: Catalyst 3750X → 9200 ($420K) - before EOS. Q4 2025: UCS refresh ($385K) - aligned to HW budget cycle. Spread across 4 quarters, eases cash flow. Create budget request?",
+                suggestions: ["Yes, create budget request", "Adjust phasing", "Can we lease instead?"]
+            },
+            { role: "user", text: "Yes, create budget request" },
+            {
+                role: "assistant",
+                text: "Budget request created: $1.8M capex across 4 quarters with detailed justification (security risk, support costs, performance needs, compliance). Includes ROI analysis showing $240K/yr opex reduction (fewer failures, better efficiency). Attachments: TCO model, vendor quotes, risk assessment. Route to CFO?",
+                suggestions: ["Yes, send to CFO", "Add to capital planning meeting", "Let me review first"]
+            },
+            { role: "user", text: "Yes, send to CFO" },
+            {
+                role: "assistant",
+                text: "Budget request sent to CFO (Jennifer Watson) with cc to IT and Finance leadership. Scheduled 30-min review session in her calendar for next week. Supporting docs attached. Now, vendor spend analysis: Cisco is 64% of network/security budget ($30.2M). Opportunities for consolidation or re-negotiation?",
+                suggestions: ["Show vendor diversification options", "Renegotiate Cisco ELA", "Check spend compliance"]
+            },
+            { role: "user", text: "Renegotiate Cisco ELA" },
+            {
+                role: "assistant",
+                text: "Current Cisco ELA: $30.2M/yr (network, security, collaboration). Contract expires in 14 months. Based on actual consumption vs. purchased licenses, you're over-deployed by 18% (~$5.4M waste annually). Renegotiation strategy: 1) True-up licenses, 2) Co-term everything, 3) Commit to 3yr for deeper discount. Projected new ELA: $26.8M/yr (11% reduction). Engage account team?",
+                suggestions: ["Yes, start negotiation", "Get competitive bids first", "Wait until renewal closer"]
+            },
+            { role: "user", text: "Yes, start negotiation" },
+            {
+                role: "assistant",
+                text: "Outreach sent to Cisco account team requesting ELA optimization discussion. Included consumption data, savings targets, and competitive landscape insights. Meeting request sent for 2 weeks out. I'll prepare negotiation playbook with: current spend, usage data, market benchmarks, walk-away alternatives. Anything else on procurement today?",
+                suggestions: ["Review PO status", "Check asset utilization", "We're done"]
+            },
+            { role: "user", text: "We're done" },
+            {
+                role: "assistant",
+                text: "Great work today! We've saved $433K/yr on licenses, set up $1.8M refresh roadmap, and initiated $3.4M ELA renegotiation. I'll track all approvals and deadlines. See you next time!"
+            }
+        ];
+
+        // Executive Overview Persona
+        personaConversations["Executive Overview"] = [
+            {
+                role: "assistant",
+                text: "Welcome to your Executive Dashboard. I'm aggregating data across all your Cisco systems - networking, security, collaboration, data center. What would you like to see?",
+                suggestions: ["Show me KPIs", "What are the top risks?", "Financial summary"]
+            },
+            { role: "user", text: "Show me KPIs" },
+            {
+                role: "assistant",
+                text: "Key Performance Indicators (Last 30 days): • Network Availability: 99.94% (target: 99.95%, miss: -0.01%). • Security Posture Score: 87/100 (was 84 last month, +3). • Mean Time to Resolve (MTTR): 4.2 hours (target: <4h, miss: +5%). • Collaboration Uptime: 99.98% (exceeds target). • Incidents: 47 total, 3 critical (down 12% from last month). Drill into any area?",
+                suggestions: ["Why did we miss availability target?", "What improved security score?", "Show incident trends"]
+            },
+            { role: "user", text: "Why did we miss availability target?" },
+            {
+                role: "assistant",
+                text: "Availability gap analysis: Two outages impacted the metric: 1) Austin branch: WAN circuit failed (4h outage, carrier issue, no redundancy). Impact: 300 users, $45K productivity loss. 2) Charlotte datacenter: Planned ACI maintenance overran by 38 minutes (change management issue). Recommendations: Add LTE backup to single-homed branches ($12K/yr), improve change planning rigor. Implement?",
+                suggestions: ["Yes, add LTE backup to at-risk sites", "Just fix change management", "Show me cost-benefit"]
+            },
+            { role: "user", text: "Show me cost-benefit" },
+            {
+                role: "assistant",
+                text: "Cost-benefit analysis: LTE backup for 12 at-risk branches: $12K/yr cost vs. estimated $180K/yr in avoided downtime (4 incidents/yr avg). ROI: 15:1. Payback period: <1 month. Improved change management (training + automation): $25K one-time investment, reduces overruns by ~65%, avoids ~$90K/yr in SLA misses. Combined NPV over 3 years: $687K. Approve investment?",
+                suggestions: ["Approve both initiatives", "Just LTE backup", "Need board approval"]
+            },
+            { role: "user", text: "Approve both initiatives" },
+            {
+                role: "assistant",
+                text: "Approved. I've created project charters for both initiatives and assigned ownership: LTE backup to Network Ops Director, Change Mgmt to IT Operations VP. Budget transferred from contingency fund. Target completion: Q1 2025. You'll get monthly progress updates. Now, top risks across the organization:",
+                suggestions: ["Show me top risks", "Skip to financial summary"]
+            },
+            { role: "user", text: "Show me top risks" },
+            {
+                role: "assistant",
+                text: "Top 5 Enterprise Risks: 1) Security: 8 critical CVEs unpatched (143 devices). Exposure: potential breach. Mitigation: patching in progress (78% complete). 2) Compliance: SOC2 audit in 3 weeks, 96% ready (4% gaps in logging, MFA). Mitigation: remediation plan launched. 3) Capacity: 46 branches near WAN saturation, 19 days until Newark fails. Mitigation: in progress. 4) Financial: $5.4M license over-deployment. Mitigation: reclamation underway. 5) EOL: 67 devices past end-of-life, security/support risk. Mitigation: $1.8M refresh roadmap proposed. Which risk should we discuss?",
+                suggestions: ["Dive into security risk", "What's the compliance exposure?", "Show me financial impact"]
+            },
+            { role: "user", text: "Dive into security risk" },
+            {
+                role: "assistant",
+                text: "Security Risk Deep-Dive: Critical CVE-2025-12346 affects 38 ASA firewalls (authentication bypass). If exploited: full network access, data exfiltration, ransomware deployment. Estimated breach cost: $8.4M (based on industry avg). Current mitigation: IPS signatures deployed (temporary), patching 78% complete, ETA full remediation: 5 days. Residual risk: MEDIUM (down from CRITICAL). Accept residual risk or expedite patching?",
+                suggestions: ["Expedite patching to 48h", "Acceptable - continue plan", "What about cyber insurance?"]
+            },
+            { role: "user", text: "Expedite patching to 48h" },
+            {
+                role: "assistant",
+                text: "Expedited patching approved. I've reallocated resources: 24/7 coverage, parallel execution across timezones. New ETA: 48 hours. Additional cost: $18K (overtime, expedited support). Risk reduced to LOW within 2 days. Security leadership notified. Now, financial summary: Total IT spend under Cisco portfolio: $47.2M/yr. Optimization opportunities identified: $4.1M/yr savings. Breakdown?",
+                suggestions: ["Yes, show breakdown", "What's our spend vs budget?", "Compared to industry peers?"]
+            },
+            { role: "user", text: "Yes, show breakdown" },
+            {
+                role: "assistant",
+                text: "Financial Optimization ($4.1M total): • License reclamation: $433K/yr (Umbrella, DNA, Webex, Duo, Meraki). • ELA renegotiation: $3.4M/yr (consumption-based pricing, 3-year commit). • Reduced incidents (LTE backup): $180K/yr (avoided downtime). • Change management efficiency: $90K/yr (fewer SLA misses). Offset by investments: -$12K/yr (LTE), -$25K one-time (training). Net 3-year benefit: $12.1M. Board presentation-ready?",
+                suggestions: ["Yes, create board deck", "Add more context", "Show quarterly breakdown"]
+            },
+            { role: "user", text: "Yes, create board deck" },
+            {
+                role: "assistant",
+                text: "Board presentation created (18 slides): Executive Summary, KPIs & Trends, Risk Dashboard, Security Update, Financial Performance, Optimization Roadmap, Strategic Initiatives, Q&A. Includes visualizations, benchmarks, and forward-looking projections. Exported to PowerPoint and PDF. Delivered to your OneDrive. Present at next board meeting (Jan 15)?",
+                suggestions: ["Yes, add to agenda", "Let me review first", "Schedule dry-run"]
+            },
+            { role: "user", text: "Yes, add to agenda" },
+            {
+                role: "assistant",
+                text: "Added to Jan 15 board agenda (30-min slot). Calendar invite sent to board members with pre-read materials attached. You'll receive briefing notes 48h before the meeting. I'll also prepare backup slides for Q&A. Anything else you need today?",
+                suggestions: ["Show workforce/collaboration metrics", "Strategic planning for 2025", "We're done"]
+            },
+            { role: "user", text: "Show workforce/collaboration metrics" },
+            {
+                role: "assistant",
+                text: "Workforce & Collaboration Metrics: • Webex adoption: 87% of workforce (target: 90%). • Meeting quality (MOS): 4.2/5.0 (excellent). • Collaboration spend per user: $47/month (industry avg: $52). • Support tickets: 234 last month (down 18% YoY due to better UX). • Mobile usage: 64% of users (up 22% YoY, remote work trend). Opportunities: Push remaining 13% to Webex to decommission legacy tools ($38K/yr savings). Invest in Webex AI features (real-time translation, transcription) for productivity gains?",
+                suggestions: ["Drive remaining Webex adoption", "Pilot AI features", "Both"]
+            },
+            { role: "user", text: "Both" },
+            {
+                role: "assistant",
+                text: "Excellent. Two initiatives launched: 1) Webex Adoption Campaign: HR comms, IT support, legacy tool sunset plan. Target: 90% by end of Q1. Savings: $38K/yr. 2) Webex AI Pilot: 50 users across Sales, Legal, Support for 60 days. Measure productivity impact. Pilot cost: $8K. If successful, full rollout adds $2.40/user/month. Both initiatives tracking in PMO dashboard. Strategic planning next?",
+                suggestions: ["Yes, let's discuss 2025 strategy", "We're done for now"]
+            },
+            { role: "user", text: "Yes, let's discuss 2025 strategy" },
+            {
+                role: "assistant",
+                text: "2025 Strategic Priorities (aligned to company goals): 1) Zero Trust Architecture: Achieve 95% maturity (currently 67%). Investment: $1.2M. Business outcome: reduce breach risk 80%. 2) AI/Automation: Deploy AIOps, auto-remediation. Investment: $450K. Outcome: 40% MTTR reduction. 3) Cloud Migration: Move 60% of workloads to hybrid cloud. Investment: $2.8M (offset by $1.1M datacenter savings). 4) Sustainability: Reduce power consumption 15% via network optimization. Investment: $180K, ROI: $320K/yr. Prioritize or adjust?",
+                suggestions: ["This priority order is good", "Move AI/Automation to #1", "Add SASE to the list"]
+            },
+            { role: "user", text: "This priority order is good" },
+            {
+                role: "assistant",
+                text: "Strategic plan confirmed. Total 2025 investment: $4.63M. Expected ROI: $6.8M over 3 years. I've created project roadmaps, assigned exec sponsors, and set quarterly milestones. You'll receive monthly scorecards tracking progress against KPIs. Final summary: Today we addressed availability, security, compliance, financial optimization, and 2025 strategy. Anything else?",
+                suggestions: ["Send me weekly exec digest", "We're done"]
+            },
+            { role: "user", text: "Send me weekly exec digest" },
+            {
+                role: "assistant",
+                text: "Weekly Executive Digest configured: Every Monday 7:00 AM, you'll receive a summary email with KPIs, risk changes, project status, financial updates, and recommended actions. First digest arrives next Monday. You're all set!"
+            }
+        ];
+
+        const initialMessage = {
+            role: "assistant",
+            text: "Welcome to Cisco Customer Intelligence for Wells Fargo. I'm your copilot across your Cisco estate (networking, security, collaboration, data center). Which persona would you like to use today?",
+            suggestions: ["Network Ops (Global)", "Security Ops (SOC)", "Procurement / Asset Mgmt", "Executive Overview"]
+        };
+
+        let conversation = [];
         let currentStep = 0;
         const chatContainer = document.getElementById('chatContainer');
 
@@ -785,6 +1096,30 @@
                 btn.disabled = true;
             });
 
+            // Check if this is persona selection (no persona set yet)
+            if (!currentPersona) {
+                const personaName = initialMessage.suggestions[suggestionIndex];
+                currentPersona = personaName;
+                conversation = personaConversations[personaName];
+                currentStep = -1; // Will be incremented to 0
+
+                // Show user selection
+                addMessage('user', personaName);
+
+                // Show first message of selected persona
+                setTimeout(() => {
+                    const typing = showTypingIndicator();
+                    setTimeout(() => {
+                        typing.remove();
+                        const firstMessage = conversation[0];
+                        addMessage(firstMessage.role, firstMessage.text, firstMessage.suggestions);
+                        currentStep = 0;
+                    }, 1200);
+                }, 600);
+                return;
+            }
+
+            // Regular conversation flow
             currentStep++;
             if (currentStep < conversation.length) {
                 const userMessage = conversation[currentStep];
@@ -806,6 +1141,8 @@
 
         function resetChat() {
             currentStep = 0;
+            currentPersona = null;
+            conversation = [];
             chatContainer.innerHTML = '';
             initChat();
         }
@@ -813,59 +1150,130 @@
         function generateSmartResponse(userQuestion) {
             const lowerQ = userQuestion.toLowerCase();
 
-            // Check for specific topics and provide contextual responses
-            if (lowerQ.includes('psirt') || lowerQ.includes('security') || lowerQ.includes('vulnerabilit')) {
+            // If no persona selected yet, guide them to select one
+            if (!currentPersona) {
                 return {
-                    text: "In this demo, I showed how I map PSIRTs to your specific devices. For live deployment, I would analyze your question against real-time security advisories and provide detailed remediation guidance. You can explore the PSIRT workflow by clicking the 'PSIRTs first' option above.",
+                    text: "Please select a persona first using the buttons above (Network Ops, Security Ops, Procurement, or Executive Overview) to start our conversation.",
                     showInfo: true
                 };
             }
 
-            if (lowerQ.includes('license') || lowerQ.includes('licensing')) {
+            // Persona-specific responses
+            if (currentPersona === "Network Ops (Global)") {
+                if (lowerQ.includes('psirt') || lowerQ.includes('security') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
+                    return {
+                        text: "For security advisories, I map PSIRTs directly to your devices and can draft remediation plans. In this demo, we handle 3 critical PSIRTs affecting 217 devices (Catalyst 9300, ASA, FXOS) with automated pilot ring deployment. Use the suggestion buttons to walk through the PSIRT remediation workflow.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('capacity') || lowerQ.includes('bandwidth') || lowerQ.includes('wan') || lowerQ.includes('branch')) {
+                    return {
+                        text: "I monitor capacity across all 46 at-risk branches and can predict saturation windows. In this demo, we fix QoS issues at Austin Domain and plan upgrades for Newark (19 days to saturation). Follow the guided conversation to see capacity management in action.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('compliance') || lowerQ.includes('pci') || lowerQ.includes('sox') || lowerQ.includes('config') || lowerQ.includes('drift')) {
+                    return {
+                        text: "I run compliance scans for PCI, SOX, and configuration drift. In this demo, we discover 12 PCI violations, 4 SOX issues, and 22 switches off standard. Continue the conversation to see automated remediation task creation.",
+                        showInfo: true
+                    };
+                }
                 return {
-                    text: "I can help optimize your licensing! In the full system, I track license utilization across your entire estate and identify opportunities for reclamation and right-sizing. In this demo, you'll see license optimization when you follow the conversation flow - we recovered $184k in unused licenses.",
+                    text: "As a Network Ops assistant, I help with PSIRTs, capacity planning, compliance scanning, ACI operations, and change management. Use the suggestion buttons above to explore these workflows, or ask about a specific area like security, capacity, or compliance.",
                     showInfo: true
                 };
             }
 
-            if (lowerQ.includes('capacity') || lowerQ.includes('bandwidth') || lowerQ.includes('wan')) {
+            if (currentPersona === "Security Ops (SOC)") {
+                if (lowerQ.includes('threat') || lowerQ.includes('attack') || lowerQ.includes('malware') || lowerQ.includes('incident')) {
+                    return {
+                        text: "I monitor active threats across SecureX, Firepower, Umbrella, and ISE. In this demo, we investigate lateral movement (10.45.22.18), analyze phishing campaigns, and hunt for reconnaissance activity from Tor exit nodes. Follow the guided flow to see incident response in action.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('cve') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
+                    return {
+                        text: "I track CVEs mapped to your assets and prioritize remediation. This demo covers 3 critical CVEs (Catalyst 9K, ASA auth bypass, FMC) with risk-based patching plans. Continue the conversation to see vulnerability management workflows.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('compliance') || lowerQ.includes('soc2') || lowerQ.includes('audit')) {
+                    return {
+                        text: "I monitor security compliance for SOC2, PCI, and custom frameworks. In this demo, we're at 96% SOC2 compliance with 4% gaps in logging, MFA, and access reviews. Follow the flow to see remediation planning.",
+                        showInfo: true
+                    };
+                }
                 return {
-                    text: "Great question about capacity planning! In production, I continuously monitor your WAN links and predict saturation windows. This demo shows capacity management for 46 at-risk branches - try selecting 'Branch capacity risks' from the suggestions above to see how I help.",
+                    text: "As a Security Ops assistant, I help with threat detection, incident response, vulnerability management, threat hunting, and compliance. Use the buttons to explore threat investigations, CVE remediation, or compliance workflows.",
                     showInfo: true
                 };
             }
 
-            if (lowerQ.includes('compliance') || lowerQ.includes('pci') || lowerQ.includes('sox') || lowerQ.includes('audit')) {
+            if (currentPersona === "Procurement / Asset Mgmt") {
+                if (lowerQ.includes('contract') || lowerQ.includes('renewal') || lowerQ.includes('expir')) {
+                    return {
+                        text: "I track all contract renewals and expirations. In this demo, we have 8 contracts expiring in 30 days ($2.4M) and 23 in 90 days ($8.7M). We optimize a SmartNet renewal with 5-year co-terming for $265K savings. Follow the guided conversation to see contract management.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('license') || lowerQ.includes('true-up') || lowerQ.includes('reclaim')) {
+                    return {
+                        text: "I identify license optimization opportunities across your entire portfolio. In this demo, we reclaim $433K/year through Umbrella, DNA, Webex, and Duo license rightsizing. Continue the flow to see automated license adjustment via Smart Licensing.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('eol') || lowerQ.includes('eos') || lowerQ.includes('refresh') || lowerQ.includes('end of life')) {
+                    return {
+                        text: "I track all EOL/EOS devices and create phased refresh roadmaps. This demo shows 67 EOL devices requiring $1.8M refresh across 4 quarters (ASA, Nexus, Catalyst, UCS). Follow the conversation to see budget planning.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('cost') || lowerQ.includes('saving') || lowerQ.includes('ela') || lowerQ.includes('negotiat')) {
+                    return {
+                        text: "I analyze spend and identify renegotiation opportunities. In this demo, we optimize a $30.2M Cisco ELA down to $26.8M (11% reduction) through consumption-based pricing and 3-year commitment. Continue to see ELA optimization.",
+                        showInfo: true
+                    };
+                }
                 return {
-                    text: "Compliance monitoring is one of my key capabilities. I can scan for PCI, SOX, HIPAA, and custom policy violations. In this demo, you'll see compliance scanning later in the conversation - we found 12 PCI violations and 4 SOX issues. Continue the guided flow to explore this.",
+                    text: "As a Procurement assistant, I help with contract renewals, license optimization, EOL/EOS tracking, spend analysis, and vendor negotiations. Use the buttons to explore contract management, license reclamation, or refresh planning.",
                     showInfo: true
                 };
             }
 
-            if (lowerQ.includes('aci') || lowerQ.includes('data center') || lowerQ.includes('datacenter')) {
+            if (currentPersona === "Executive Overview") {
+                if (lowerQ.includes('kpi') || lowerQ.includes('metric') || lowerQ.includes('performance')) {
+                    return {
+                        text: "I track key performance indicators across your entire Cisco estate. In this demo: Availability 99.94%, Security Score 87/100, MTTR 4.2h, and 47 incidents (down 12%). Follow the guided flow to see detailed KPI analysis and improvement plans.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('risk') || lowerQ.includes('exposure')) {
+                    return {
+                        text: "I provide enterprise risk visibility with mitigation tracking. This demo covers Top 5 risks: Security (CVEs), Compliance (SOC2), Capacity (WAN saturation), Financial (license waste), and EOL devices. Continue to see risk deep-dives and remediation.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('financial') || lowerQ.includes('cost') || lowerQ.includes('roi') || lowerQ.includes('saving')) {
+                    return {
+                        text: "I provide financial optimization analysis across your $47.2M IT spend. In this demo, we identify $4.1M/year in savings through license reclamation, ELA renegotiation, and operational improvements. Follow the flow to see board-ready financial summaries.",
+                        showInfo: true
+                    };
+                }
+                if (lowerQ.includes('strateg') || lowerQ.includes('roadmap') || lowerQ.includes('2025') || lowerQ.includes('planning')) {
+                    return {
+                        text: "I help with strategic planning and roadmap development. This demo shows 2025 priorities: Zero Trust (95% maturity), AI/Automation (40% MTTR reduction), Cloud Migration, and Sustainability. Continue to see strategic investment planning.",
+                        showInfo: true
+                    };
+                }
                 return {
-                    text: "For ACI and data center operations, I monitor TCAM utilization, fabric health, and recommend cleanup or expansion. The demo includes ACI Fabric-03 optimization - follow the conversation to see how I help reclaim 9-12% TCAM through cleanup.",
-                    showInfo: true
-                };
-            }
-
-            if (lowerQ.includes('cost') || lowerQ.includes('saving') || lowerQ.includes('budget')) {
-                return {
-                    text: "I identify cost optimization opportunities across your estate. In this demo scenario, I found ~$184k/year in license reclamation savings, balanced against $62k in necessary WAN upgrades. The Executive Overview section shows the complete financial picture.",
-                    showInfo: true
-                };
-            }
-
-            if (lowerQ.includes('how') || lowerQ.includes('what') || lowerQ.includes('when') || lowerQ.includes('why') || lowerQ.includes('can you')) {
-                return {
-                    text: "I'm a demonstration of Cisco Customer Intelligence for Wells Fargo Network Operations. While I can't answer that specific question in demo mode, I can show you end-to-end workflows for PSIRTs, capacity management, compliance, licensing, and executive reporting. Use the suggestion buttons above to explore each area, or ask about a specific topic like 'security', 'licensing', or 'compliance'.",
+                    text: "As an Executive assistant, I provide KPI dashboards, risk management, financial optimization, strategic planning, and board-ready reporting. Use the buttons to explore performance metrics, risk analysis, or 2025 strategy.",
                     showInfo: true
                 };
             }
 
             // Generic fallback
             return {
-                text: "That's an interesting question! This is a guided demo showcasing specific workflows. I'd recommend using the suggestion buttons to explore the capabilities, or ask me about: PSIRTs & security, capacity planning, licensing optimization, compliance scanning, ACI operations, or cost savings.",
+                text: `That's an interesting question for the ${currentPersona} persona! This is a guided demo showcasing specific workflows. I'd recommend using the suggestion buttons to explore the capabilities step-by-step, or ask about specific topics relevant to your role.`,
                 showInfo: true
             };
         }
@@ -932,8 +1340,7 @@
             const typing = showTypingIndicator();
             setTimeout(() => {
                 typing.remove();
-                const firstMessage = conversation[0];
-                addMessage(firstMessage.role, firstMessage.text, firstMessage.suggestions);
+                addMessage(initialMessage.role, initialMessage.text, initialMessage.suggestions);
             }, 1200);
         }
 
