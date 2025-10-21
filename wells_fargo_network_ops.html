@@ -1,33 +1,476 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-<title>Cisco Customer Intelligence - Wells Fargo Network Ops</title>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-}
-html {
-  font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-}
-#mindmap {
-  display: block;
-  width: 100vw;
-  height: 100vh;
-}
-.markmap-dark {
-  background: #27272a;
-  color: white;
-}
-</style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco Customer Intelligence – Wells Fargo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            max-height: 800px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #049fd9 0%, #1ba0d8 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            border-bottom: 3px solid #037fb5;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: #f5f7fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-bubble {
+            padding: 16px 20px;
+            border-radius: 12px;
+            max-width: 85%;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .assistant .message-bubble {
+            background: linear-gradient(135deg, #049fd9 0%, #1ba0d8 100%);
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        .user .message-bubble {
+            background: #e3e8ef;
+            color: #2c3e50;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .role-label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            opacity: 0.8;
+        }
+
+        .assistant .role-label {
+            color: #049fd9;
+        }
+
+        .user .role-label {
+            color: #6b7280;
+            text-align: right;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            animation: fadeIn 0.4s ease-in 0.2s both;
+        }
+
+        .suggestion-btn {
+            background: white;
+            border: 2px solid #049fd9;
+            color: #049fd9;
+            padding: 10px 18px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .suggestion-btn:hover {
+            background: #049fd9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(4, 159, 217, 0.3);
+        }
+
+        .suggestion-btn:active {
+            transform: translateY(0);
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #049fd9 0%, #1ba0d8 100%);
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        .reset-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: white;
+            color: #049fd9;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #e3e8ef;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #049fd9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #037fb5;
+        }
+    </style>
 </head>
 <body>
-<svg id="mindmap"></svg>
-<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/index.js"></script><script>(()=>{setTimeout(()=>{const{markmap:S,mm:Q}=window,$=new S.Toolbar;$.attach(Q);const I=$.render();I.setAttribute("style","position:absolute;bottom:20px;right:20px"),document.body.append(I)})})()</script><script>((l,U,M,R)=>{const N=l();window.mm=N.Markmap.create("svg#mindmap",(U||N.deriveOptions)(R),M),window.matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.classList.add("markmap-dark")})(()=>window.markmap,null,{"content":"Cisco Customer Intelligence – Wells Fargo Network Ops","children":[{"content":"Session Initialization","children":[{"content":"Persona Selection","children":[{"content":"Network Ops (Global) - Selected","children":[]},{"content":"Security Ops (SOC)","children":[]},{"content":"Procurement / Asset Mgmt","children":[]},{"content":"Executive Overview","children":[]}]},{"content":"Alert Configuration","children":[{"content":"Delivery Channels","children":[{"content":"Webex + Email - Selected","children":[]},{"content":"Teams only","children":[]},{"content":"Email only","children":[]}]},{"content":"Alert Types","children":[{"content":"Outages","children":[]},{"content":"PSIRTs (Security Advisories)","children":[]},{"content":"EOL/EOS Notices","children":[]},{"content":"Contract Risk","children":[]}]}]}]},{"content":"Live Network Dashboard","children":[{"content":"Availability Metrics","children":[{"content":"Uptime: 99.94% (30-day)","children":[]},{"content":"Target: 99.95%","children":[]}]},{"content":"Capacity Issues","children":[{"content":"46 branches near WAN saturation","children":[]},{"content":"Risk Impact: Branch productivity","children":[]}]},{"content":"Security Posture","children":[{"content":"3 critical PSIRTs","children":[]},{"content":"217 devices impacted","children":[{"content":"Catalyst 9300 switches","children":[]},{"content":"ASA 5516 firewalls","children":[]},{"content":"FXOS chassis","children":[]}]}]},{"content":"Lifecycle Management","children":[{"content":"14 EOL devices in production","children":[]},{"content":"5 contracts expire in 60 days","children":[]},{"content":"12 licenses over-allocated","children":[]}]}]},{"content":"PSIRT Remediation","children":[{"content":"Affected Platforms","children":[{"content":"IOS-XE on Catalyst 9300","children":[{"content":"143 devices affected","children":[]},{"content":"Fix: Upgrade to 17.9.5a","children":[]}]},{"content":"ASA 5516","children":[{"content":"38 appliances affected","children":[]},{"content":"Fix: Migrate to FTD or 9.16(5)27","children":[]}]},{"content":"FXOS Chassis","children":[{"content":"36 chassis affected","children":[]},{"content":"Fix: Upgrade to 2.14(1f)","children":[]}]}]},{"content":"Pilot Deployment Strategy","children":[{"content":"Ring 0 (Low-Risk)","children":[{"content":"Sacramento branch","children":[]},{"content":"Tempe branch","children":[]}]},{"content":"Ring 1 (Regional)","children":[{"content":"5 regional offices","children":[]}]},{"content":"Ring 2 (Major Hubs)","children":[{"content":"San Francisco hub","children":[]},{"content":"Charlotte hub","children":[]}]},{"content":"Maintenance Windows","children":[{"content":"Tuesday/Thursday","children":[]},{"content":"01:00-03:00 local time","children":[]}]}]},{"content":"Change Management","children":[{"content":"ServiceNow CR created","children":[]},{"content":"Runbooks posted to Webex","children":[{"content":"Space: 'NetOps-Change'","children":[]}]},{"content":"Documentation","children":[{"content":"Rollback procedures","children":[]},{"content":"Pre-flight checks","children":[]},{"content":"Post-deployment validation","children":[]},{"content":"CAB notes","children":[]}]},{"content":"Automated Health Baselines","children":[{"content":"CPU/Memory metrics","children":[]},{"content":"Interface error rates","children":[]},{"content":"Syslog analysis","children":[]}]}]}]},{"content":"Branch Capacity Management","children":[{"content":"High-Risk Sites","children":[{"content":"Daly City","children":[{"content":"92% peak utilization","children":[]},{"content":"LTE failover flapping","children":[]},{"content":"Action: Increase CIR","children":[]}]},{"content":"Austin Domain","children":[{"content":"QoS misclassification","children":[]},{"content":"Zoom/Webex traffic affected","children":[]},{"content":"Action: Apply WF-QoS-Branch-v7","children":[]}]},{"content":"Newark","children":[{"content":"1Gb DIA circuit","children":[]},{"content":"+18% MoM growth","children":[]},{"content":"Saturation projected in 19 days","children":[]},{"content":"Action: Order 2Gb DIA + temp SaaS breakout","children":[]}]}]},{"content":"QoS Template Deployment","children":[{"content":"Target: Austin Domain","children":[]},{"content":"Template: WF-QoS-Branch-v7","children":[]},{"content":"Configuration Changes","children":[{"content":"New class-map: COLLAB-REALTIME","children":[]},{"content":"Match criteria: DSCP cs4 ef","children":[]},{"content":"Policy: WAN-OUT priority 30%","children":[]},{"content":"Voice VLAN: Unaffected","children":[]}]},{"content":"Deployment Method","children":[{"content":"Cisco DNA Center","children":[]},{"content":"No device reload required","children":[]}]},{"content":"Post-Deployment Results","children":[{"content":"MOS improvement: +0.4","children":[]},{"content":"Jitter reduction: -8ms","children":[]},{"content":"Branch manager notified","children":[]},{"content":"Ticket updated with results","children":[]}]}]}]},{"content":"Proactive Care & Lifecycle","children":[{"content":"SmartNet Renewals","children":[{"content":"120 Catalyst 9K devices (Southeast)","children":[]},{"content":"Expiration: 60 days","children":[]},{"content":"Quote options: 1/3/5-year co-term","children":[]}]},{"content":"License Management","children":[{"content":"Umbrella SIG","children":[{"content":"Pool utilization: 95%","children":[]},{"content":"Reclaim: 320 inactive licenses","children":[]},{"content":"Add: 500 temporary SIG licenses","children":[]},{"content":"Projected savings: ~$184k/year","children":[]}]}]},{"content":"Predictive RMA","children":[{"content":"Platform: C9500-24Y (Charlotte)","children":[]},{"content":"Component: 3 fans trending to failure","children":[]},{"content":"Action: Advanced replacement","children":[]},{"content":"Schedule: Tomorrow 10:00 AM","children":[]}]},{"content":"Approval Routing","children":[{"content":"Procurement team","children":[]},{"content":"Finance team","children":[]},{"content":"SLA nudges: 48/24/4-hour intervals","children":[]}]}]},{"content":"Executive Reporting","children":[{"content":"One-Pager Components","children":[{"content":"Risk Assessment","children":[{"content":"Current: High → Medium (post-pilot)","children":[]},{"content":"Projected: Low (post-rollout)","children":[]},{"content":"PSIRT exposure: -74% reduction","children":[]}]},{"content":"Financial Impact","children":[{"content":"Savings: ~$184k/year (license reclaim)","children":[]},{"content":"Investment: +$62k WAN uplift","children":[]},{"content":"Net: Offset by productivity gains","children":[]}]},{"content":"Distribution","children":[{"content":"Webex: 'NetOps-Leadership' space","children":[]},{"content":"Email delivery","children":[]}]}]},{"content":"Recurring Reports","children":[{"content":"Weekly Digest","children":[{"content":"Schedule: Monday 08:00 PT","children":[]},{"content":"Audience: NetOps team","children":[]}]},{"content":"Monthly Board PDF","children":[{"content":"Schedule: First business day","children":[]},{"content":"Audience: Leadership","children":[]},{"content":"Content: Board-ready format","children":[]}]}]}]},{"content":"Compliance & Audit","children":[{"content":"PCI Compliance","children":[{"content":"Finding: 12 branches using WPA2-PSK","children":[]},{"content":"Affected: Guest networks","children":[]},{"content":"Remediation: WPA3 + unique PSKs via ISE","children":[]},{"content":"Owner: Wireless team","children":[]}]},{"content":"SOX Compliance","children":[{"content":"Finding: 4 devices missing AAA accounting","children":[]},{"content":"Required: TACACS integration","children":[]},{"content":"Owner: Access team","children":[]}]},{"content":"Configuration Drift","children":[{"content":"22 switches off standard","children":[]},{"content":"Standard: WF-Std-Access-23b","children":[]},{"content":"Action: Golden-config diff tasks","children":[]},{"content":"Owner: Identity team","children":[]}]},{"content":"Task Management","children":[{"content":"Platform: ServiceNow","children":[]},{"content":"Alignment: Audit calendar","children":[]},{"content":"Status: Tasks created with owner groups","children":[]}]}]},{"content":"Data Center Operations","children":[{"content":"ACI Fabric-03 Analysis","children":[{"content":"Current State","children":[{"content":"Leaf TCAM utilization: 72%","children":[]},{"content":"Trend: 85% in ~6 months","children":[]}]},{"content":"Remediation Options","children":[{"content":"Option A: Add 2 leaf switches","children":[]},{"content":"Option B: Quick cleanup - Selected","children":[{"content":"Prune 318 unused filters","children":[]},{"content":"Remove 41 stale contracts","children":[]},{"content":"Expected savings: 9-12% TCAM","children":[]}]}]},{"content":"Cleanup Execution","children":[{"content":"Dry-run: Completed","children":[]},{"content":"Schedule: Friday 02:00 local","children":[]},{"content":"Safeguards","children":[{"content":"Pre-snapshot","children":[]},{"content":"Post-snapshot","children":[]},{"content":"Archive to Splunk","children":[]},{"content":"Evidence store backup","children":[]}]}]}]}]},{"content":"Collaboration Platform","children":[{"content":"CUCM Cluster Status","children":[{"content":"Finding: 2 clusters one minor behind","children":[]},{"content":"Recommended: Rolling upgrades","children":[]},{"content":"Impact: Zero-touch to users","children":[]},{"content":"Decision: Deferred 30 days","children":[]},{"content":"Follow-up: Reminder 2 weeks before deferral end","children":[]}]}]},{"content":"Executive Overview & Metrics","children":[{"content":"Availability Dashboard","children":[{"content":"Current: 99.94%","children":[]},{"content":"Target: 99.95%","children":[]},{"content":"Gap: -0.01%","children":[]}]},{"content":"Risk Trajectory","children":[{"content":"Current: High → Medium","children":[]},{"content":"Post-pilot: Medium","children":[]},{"content":"Post-rollout: Low","children":[]}]},{"content":"90-Day Roadmap","children":[{"content":"Phase 1: PSIRT rollout","children":[]},{"content":"Phase 2: ACI cleanup","children":[]},{"content":"Phase 3: Branch DIA upgrades","children":[]},{"content":"Phase 4: Compliance closure","children":[]},{"content":"Phase 5: CUCM deferred upgrade","children":[]}]},{"content":"Financial Summary","children":[{"content":"Annual savings: ~$184k (licenses)","children":[]},{"content":"WAN investment: +$62k","children":[]},{"content":"Net impact: Productivity offset","children":[]}]}]},{"content":"SD-WAN & User Experience","children":[{"content":"Experience Monitoring","children":[{"content":"Metrics Tracked","children":[{"content":"SaaS RTT (Round-Trip Time)","children":[]},{"content":"Packet loss rates","children":[]},{"content":"Application SLOs","children":[]}]},{"content":"Alert Criteria","children":[{"content":"Trigger: SLO failure 2+ consecutive hours","children":[]},{"content":"Action: Proactive ticket creation","children":[]}]},{"content":"Dashboard Panel","children":[{"content":"Name: 'End-User Experience'","children":[]},{"content":"Scope: All branches","children":[]},{"content":"Real-time monitoring","children":[]}]}]},{"content":"Customer Success Alignment","children":[{"content":"Cisco CSM Brief","children":[{"content":"Change plans shared","children":[]},{"content":"Approvals documented","children":[]},{"content":"Executive brief included","children":[]}]},{"content":"Account Team Coordination","children":[{"content":"Roadmap alignment","children":[]},{"content":"Service credits discussion","children":[]}]}]}]},{"content":"AI Assistant Capabilities","children":[{"content":"Monitoring & Alerting","children":[{"content":"Continuous estate monitoring","children":[]},{"content":"Proactive ticket creation","children":[]},{"content":"SLA-based nudges","children":[]}]},{"content":"Quick Commands","children":[{"content":"/priorities","children":[{"content":"Reshuffle roadmap priorities","children":[]}]},{"content":"/what-changed","children":[{"content":"Daily diff summary","children":[]}]}]},{"content":"Integration Points","children":[{"content":"Cisco DNA Center","children":[]},{"content":"ServiceNow","children":[]},{"content":"Webex Teams","children":[]},{"content":"Email notifications","children":[]},{"content":"Splunk","children":[]}]},{"content":"Domains Covered","children":[{"content":"Networking","children":[]},{"content":"Security","children":[]},{"content":"Collaboration","children":[]},{"content":"Data Center","children":[]},{"content":"Licensing","children":[]},{"content":"Compliance","children":[]},{"content":"Renewals","children":[]}]}]}]},{"maxWidth":300})</script>
+    <div class="container">
+        <div class="header">
+            <button class="reset-btn" onclick="resetChat()">Reset</button>
+            <h1>Cisco Customer Intelligence</h1>
+            <p>Wells Fargo Network Operations</p>
+        </div>
+        <div class="chat-container" id="chatContainer">
+            <!-- Messages will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        const conversation = [
+            {
+                role: "assistant",
+                text: "Welcome to Cisco Customer Intelligence for Wells Fargo. I'm your copilot across your Cisco estate (networking, security, collaboration, data center). Which persona would you like to use today?",
+                suggestions: ["Network Ops (Global)", "Security Ops (SOC)", "Procurement / Asset Mgmt", "Executive Overview"]
+            },
+            { role: "user", text: "Network Ops (Global)" },
+            {
+                role: "assistant",
+                text: "Great. I've loaded your global Network Ops view. Where should I deliver critical alerts (outages, PSIRTs, EOL/EOS, contract risk)?",
+                suggestions: ["Webex + Email", "Teams only", "Email only"]
+            },
+            { role: "user", text: "Webex + Email" },
+            {
+                role: "assistant",
+                text: "Done. Here's your live dashboard: Uptime 99.94% (30d). 46 branches near WAN saturation. 3 critical PSIRTs impact 217 devices (Catalyst 9300, ASA 5516, FXOS). 5 contracts expire in 60 days. 12 licenses over-allocated. 14 EOL devices in production. What do you want to tackle first?",
+                suggestions: ["PSIRTs first", "Branch capacity risks", "Contracts & Licenses"]
+            },
+            { role: "user", text: "PSIRTs first" },
+            {
+                role: "assistant",
+                text: "Security Advisories mapped to your assets: • IOS-XE on C9300 — 143 devices. Fix: 17.9.5a. • ASA 5516 — 38 appliances. Fix: migrate to FTD or 9.16(5)27. • FXOS — 36 chassis. Fix: 2.14(1f). Want me to draft change plans, stage a pilot, or export to ServiceNow?",
+                suggestions: ["Stage pilot in lab", "Draft change plan", "Export to ServiceNow"]
+            },
+            { role: "user", text: "Stage pilot in lab" },
+            {
+                role: "assistant",
+                text: "Proposed pilot rings and windows: Ring 0 (2 low-risk branches: Sacramento, Tempe), Ring 1 (5 regional offices), Ring 2 (SF/Charlotte hubs). Maintenance Tue/Thu 01:00–03:00 local. Proceed or customize?",
+                suggestions: ["Use suggested rings & windows", "Customize rings", "Cancel"]
+            },
+            { role: "user", text: "Use suggested rings & windows" },
+            {
+                role: "assistant",
+                text: "Pilots scheduled. I've posted runbooks to your Webex 'NetOps-Change' space and opened a ServiceNow CR with rollback, pre/post checks, and CAB notes. Include automated health baselines (CPU/mem, interface errors, syslogs) in the CR?",
+                suggestions: ["Yes, attach baselines", "No, keep lean"]
+            },
+            { role: "user", text: "Yes, attach baselines" },
+            {
+                role: "assistant",
+                text: "Attached. Next, Branch capacity: 46 sites at risk. Top 3: Daly City (92% peak, LTE flaps), Austin Domain (QoS misclassifies Zoom/Webex), Newark (1Gb DIA, +18% MoM growth; saturation in 19 days). Recommended: increase CIR Daly City, fix QoS, order 2Gb DIA for Newark with temporary SaaS breakout. What should we do?",
+                suggestions: ["Apply QoS template now", "Open carrier quote", "Create SD-WAN policy change"]
+            },
+            { role: "user", text: "Apply QoS template now" },
+            {
+                role: "assistant",
+                text: "Previewing config via Cisco DNA Center: Apply 'WF-QoS-Branch-v7' to Austin Domain. Impact: +1 class-map, +1 policy-map, no reload. See diff or proceed?",
+                suggestions: ["Show diff", "Proceed", "Schedule tonight"]
+            },
+            { role: "user", text: "Show diff" },
+            {
+                role: "assistant",
+                text: "Diff: - class-map VIDEO-OLD; + class-map COLLAB-REALTIME (match dscp cs4 ef); + policy WAN-OUT priority percent 30 for COLLAB-REALTIME. Voice VLAN unaffected. Proceed?",
+                suggestions: ["Proceed", "Schedule tonight"]
+            },
+            { role: "user", text: "Proceed" },
+            {
+                role: "assistant",
+                text: "Template applied. Post-checks green: MOS +0.4, jitter −8ms. Notify branch manager and attach results to the Austin ticket?",
+                suggestions: ["Yes", "No"]
+            },
+            { role: "user", text: "Yes" },
+            {
+                role: "assistant",
+                text: "Done. Proactive care items: • SmartNet for 120 Catalyst 9K in Southeast expires in 60 days. • Umbrella SIG license pool at 95% utilization. • Predicted RMA: 3 fans on C9500-24Y (Charlotte) trending to failure. Open cases?",
+                suggestions: ["Open all cases", "Open RMA only", "Skip for now"]
+            },
+            { role: "user", text: "Open all cases" },
+            {
+                role: "assistant",
+                text: "Opened: renewal quote (1/3/5-yr with co-term), license right-size (reclaim 320 inactive; add 500 SIG temps), RMA advanced replacement for 3 fans tomorrow 10:00. Route quotes to Procurement and Finance for approval?",
+                suggestions: ["Yes, route for approval", "Send to Procurement only", "I'll handle approvals"]
+            },
+            { role: "user", text: "Yes, route for approval" },
+            {
+                role: "assistant",
+                text: "Routed with 48/24/4-hour SLA nudges. Want an executive one-pager (risk, savings, outcomes) for NetOps leadership?",
+                suggestions: ["Yes, create one-pager", "No, skip"]
+            },
+            { role: "user", text: "Yes, create one-pager" },
+            {
+                role: "assistant",
+                text: "Executive brief ready: PSIRT exposure projected −74% post-rollout; license reclaim saves ~$184k; WAN uplift +$62k offset by productivity. Delivered to Webex 'NetOps-Leadership' and email. Run a quick SOX/PCI compliance scan before the next audit window?",
+                suggestions: ["Run compliance scan", "Later"]
+            },
+            { role: "user", text: "Run compliance scan" },
+            {
+                role: "assistant",
+                text: "Compliance findings: • PCI: 12 branches using WPA2-PSK on guest; recommend WPA3 + unique PSKs via ISE. • SOX: 4 devices missing AAA accounting to TACACS. • Config drift: 22 switches off 'WF-Std-Access-23b'. Open remediation tasks with golden-config diffs?",
+                suggestions: ["Open tasks", "Export report only"]
+            },
+            { role: "user", text: "Open tasks" },
+            {
+                role: "assistant",
+                text: "Tasks created in ServiceNow with owner groups (Wireless, Access, Identity) and change windows aligned to audit calendar. Switch to Data Center posture?",
+                suggestions: ["Yes, show ACI posture", "Skip for now"]
+            },
+            { role: "user", text: "Yes, show ACI posture" },
+            {
+                role: "assistant",
+                text: "ACI Fabric-03: Leaf TCAM at 72%, trending 85% in ~6 months. Options: add 2 leafs; or quick cleanup (prune 318 unused filters, 41 stale contracts) to free ~9–12%. Which path?",
+                suggestions: ["Quick cleanup", "Build capacity plan", "Defer"]
+            },
+            { role: "user", text: "Quick cleanup" },
+            {
+                role: "assistant",
+                text: "Dry-run completed. Schedule cleanup Fri 02:00 local? I'll snapshot before/after and archive to Splunk + evidence store.",
+                suggestions: ["Apply Fri 02:00", "Reschedule", "Cancel"]
+            },
+            { role: "user", text: "Apply Fri 02:00" },
+            {
+                role: "assistant",
+                text: "Scheduled. Collaboration note: two CUCM clusters are one minor behind standard; propose rolling upgrades with zero-touch user impact. Proceed or defer?",
+                suggestions: ["Plan upgrades", "Defer 30 days"]
+            },
+            { role: "user", text: "Defer 30 days" },
+            {
+                role: "assistant",
+                text: "Acknowledged. I'll remind you two weeks before the deferral ends. Would you like an Executive Overview now or check license health?",
+                suggestions: ["Show Executive Overview", "License health", "We're done"]
+            },
+            { role: "user", text: "Show Executive Overview" },
+            {
+                role: "assistant",
+                text: "Executive Overview: Availability 99.94% (target 99.95%). Risk moving from High→Medium after pilots; projected Low post-rollout. Financials: ~$184k/yr savings from license reclaim; WAN spend +$62k offset by productivity gains. 90-day roadmap: PSIRT rollout, ACI cleanup, branch DIA upgrades, compliance closure, CUCM deferred upgrade. Schedule weekly digests and a monthly board-ready PDF?",
+                suggestions: ["Yes, both", "Weekly only", "No thanks"]
+            },
+            { role: "user", text: "Yes, both" },
+            {
+                role: "assistant",
+                text: "Set: Monday 08:00 PT weekly digest and first business day monthly board PDF. Track anything else?",
+                suggestions: ["Add SD-WAN user experience", "Track Zero-Trust maturity", "No changes"]
+            },
+            { role: "user", text: "Add SD-WAN user experience" },
+            {
+                role: "assistant",
+                text: "Added 'End-User Experience' panel (SaaS RTT, loss, app SLOs). I'll alert if any branch fails SLO for 2+ consecutive hours and open proactive tickets. Brief Cisco CSM and account team so they align roadmap and credits?",
+                suggestions: ["Yes, brief them", "No"]
+            },
+            { role: "user", text: "Yes, brief them" },
+            {
+                role: "assistant",
+                text: "Brief sent with links to change plans, approvals, and executive brief. Anything else today?",
+                suggestions: ["/priorities", "/what-changed", "We're done"]
+            },
+            { role: "user", text: "We're done — thanks!" },
+            {
+                role: "assistant",
+                text: "Glad to help. I'll keep monitoring and nudging proactively. Ping me anytime with /priorities to reshuffle the roadmap or /what-changed for a daily diff summary."
+            }
+        ];
+
+        let currentStep = 0;
+        const chatContainer = document.getElementById('chatContainer');
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.innerHTML = '<span></span><span></span><span></span>';
+            chatContainer.appendChild(typing);
+            scrollToBottom();
+            return typing;
+        }
+
+        function addMessage(role, text, suggestions = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            let html = `
+                <div class="role-label">${role === 'assistant' ? 'Cisco AI Assistant' : 'Wells Fargo Network Ops'}</div>
+                <div class="message-bubble">${text}</div>
+            `;
+
+            if (suggestions && suggestions.length > 0) {
+                html += '<div class="suggestions">';
+                suggestions.forEach((suggestion, index) => {
+                    html += `<button class="suggestion-btn" onclick="handleSuggestionClick(${index})">${suggestion}</button>`;
+                });
+                html += '</div>';
+            }
+
+            messageDiv.innerHTML = html;
+            chatContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function handleSuggestionClick(suggestionIndex) {
+            // Disable all suggestion buttons
+            const allButtons = document.querySelectorAll('.suggestion-btn');
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+
+            // Move to next step (user's response)
+            currentStep++;
+            if (currentStep < conversation.length) {
+                const userMessage = conversation[currentStep];
+                addMessage(userMessage.role, userMessage.text);
+
+                // Then show assistant's response after a delay
+                currentStep++;
+                if (currentStep < conversation.length) {
+                    setTimeout(() => {
+                        const typing = showTypingIndicator();
+                        setTimeout(() => {
+                            typing.remove();
+                            const assistantMessage = conversation[currentStep];
+                            addMessage(assistantMessage.role, assistantMessage.text, assistantMessage.suggestions);
+                        }, 1000);
+                    }, 500);
+                }
+            }
+        }
+
+        function resetChat() {
+            currentStep = 0;
+            chatContainer.innerHTML = '';
+            initChat();
+        }
+
+        function initChat() {
+            // Show first message
+            const typing = showTypingIndicator();
+            setTimeout(() => {
+                typing.remove();
+                const firstMessage = conversation[0];
+                addMessage(firstMessage.role, firstMessage.text, firstMessage.suggestions);
+            }, 1000);
+        }
+
+        // Initialize the chat
+        initChat();
+    </script>
 </body>
 </html>
