@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cisco Customer Intelligence – Wells Fargo</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -12,57 +14,270 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0f;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            animation: gradient 20s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradient {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, -5%) rotate(120deg); }
+            66% { transform: translate(-5%, 5%) rotate(240deg); }
         }
 
         .container {
             width: 100%;
-            max-width: 900px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 90vh;
-            max-height: 800px;
+            max-height: 900px;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
-            background: linear-gradient(135deg, #049fd9 0%, #1ba0d8 100%);
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.8) 0%, rgba(20, 20, 30, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             color: white;
-            padding: 24px;
-            text-align: center;
-            border-bottom: 3px solid #037fb5;
+            padding: 32px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
         }
 
-        .header h1 {
-            font-size: 24px;
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #4A90E2 0%, #6366F1 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .brand-text h1 {
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
         }
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.95;
+        .brand-text p {
+            font-size: 13px;
+            opacity: 0.6;
+            font-weight: 400;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #10b981;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
-            background: #f5f7fa;
+            padding: 40px;
+            background: transparent;
         }
 
         .message {
-            margin-bottom: 20px;
-            animation: fadeIn 0.4s ease-in;
+            margin-bottom: 32px;
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .assistant .avatar {
+            background: linear-gradient(135deg, #4A90E2 0%, #6366F1 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .user .avatar {
+            background: linear-gradient(135deg, #EC4899 0%, #F97316 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .role-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: -0.01em;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 400;
+        }
+
+        .message-bubble {
+            padding: 20px 24px;
+            border-radius: 16px;
+            max-width: 85%;
+            line-height: 1.7;
+            font-size: 14.5px;
+            font-weight: 400;
+            position: relative;
+        }
+
+        .assistant .message-bubble {
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: rgba(255, 255, 255, 0.95);
+            margin-left: 48px;
+            border-top-left-radius: 4px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .user .message-bubble {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(249, 115, 22, 0.15) 100%);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            color: rgba(255, 255, 255, 0.95);
+            margin-left: auto;
+            margin-right: 0;
+            border-top-right-radius: 4px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .user .message-header {
+            justify-content: flex-end;
+        }
+
+        .user .message-bubble {
+            text-align: right;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+            margin-left: 48px;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
         }
 
         @keyframes fadeIn {
@@ -76,92 +291,75 @@
             }
         }
 
-        .message-bubble {
-            padding: 16px 20px;
-            border-radius: 12px;
-            max-width: 85%;
-            line-height: 1.6;
-            font-size: 15px;
-        }
-
-        .assistant .message-bubble {
-            background: linear-gradient(135deg, #049fd9 0%, #1ba0d8 100%);
-            color: white;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-
-        .user .message-bubble {
-            background: #e3e8ef;
-            color: #2c3e50;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-
-        .role-label {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            opacity: 0.8;
-        }
-
-        .assistant .role-label {
-            color: #049fd9;
-        }
-
-        .user .role-label {
-            color: #6b7280;
-            text-align: right;
-        }
-
-        .suggestions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 12px;
-            animation: fadeIn 0.4s ease-in 0.2s both;
-        }
-
         .suggestion-btn {
-            background: white;
-            border: 2px solid #049fd9;
-            color: #049fd9;
-            padding: 10px 18px;
-            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .suggestion-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(74, 144, 226, 0.3) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .suggestion-btn:hover {
-            background: #049fd9;
-            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(4, 159, 217, 0.3);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .suggestion-btn:hover::before {
+            opacity: 1;
         }
 
         .suggestion-btn:active {
             transform: translateY(0);
         }
 
+        .suggestion-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .typing-indicator {
             display: inline-flex;
-            gap: 4px;
-            padding: 16px 20px;
-            background: linear-gradient(135deg, #049fd9 0%, #1ba0d8 100%);
-            border-radius: 12px;
-            border-bottom-left-radius: 4px;
-            margin-bottom: 20px;
+            gap: 6px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            border-top-left-radius: 4px;
+            margin-bottom: 32px;
+            margin-left: 48px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .typing-indicator span {
             width: 8px;
             height: 8px;
-            background: white;
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 50%;
-            animation: typing 1.4s infinite;
+            animation: typing 1.4s infinite ease-in-out;
         }
 
         .typing-indicator span:nth-child(2) {
@@ -179,54 +377,93 @@
             }
             30% {
                 opacity: 1;
-                transform: translateY(-10px);
+                transform: translateY(-8px);
             }
         }
 
-        .reset-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .reset-btn:hover {
-            background: white;
-            color: #049fd9;
-        }
-
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #e3e8ef;
+            background: rgba(255, 255, 255, 0.02);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #049fd9;
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #037fb5;
+            background: rgba(255, 255, 255, 0.15);
+            background-clip: padding-box;
+        }
+
+        /* Smooth scroll */
+        .chat-container {
+            scroll-behavior: smooth;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .container {
+                max-height: 95vh;
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 24px 20px;
+            }
+
+            .brand-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .brand-text h1 {
+                font-size: 18px;
+            }
+
+            .chat-container {
+                padding: 24px 20px;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            .suggestions {
+                margin-left: 0;
+            }
+
+            .typing-indicator {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <button class="reset-btn" onclick="resetChat()">Reset</button>
-            <h1>Cisco Customer Intelligence</h1>
-            <p>Wells Fargo Network Operations</p>
+            <div class="header-content">
+                <div class="brand">
+                    <div class="brand-icon">C</div>
+                    <div class="brand-text">
+                        <h1>Cisco Customer Intelligence</h1>
+                        <p>Wells Fargo Network Operations</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="status-badge">
+                        <div class="status-dot"></div>
+                        <span>Connected</span>
+                    </div>
+                    <button class="reset-btn" onclick="resetChat()">Reset</button>
+                </div>
+            </div>
         </div>
         <div class="chat-container" id="chatContainer">
             <!-- Messages will be inserted here -->
@@ -392,6 +629,11 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function showTypingIndicator() {
             const typing = document.createElement('div');
             typing.className = 'typing-indicator';
@@ -405,8 +647,16 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
 
+            const avatarLetter = role === 'assistant' ? 'C' : 'W';
+            const roleName = role === 'assistant' ? 'Cisco AI Assistant' : 'Wells Fargo Network Ops';
+
             let html = `
-                <div class="role-label">${role === 'assistant' ? 'Cisco AI Assistant' : 'Wells Fargo Network Ops'}</div>
+                <div class="message-header">
+                    ${role === 'assistant' ? `<div class="avatar">${avatarLetter}</div>` : ''}
+                    <div class="role-label">${roleName}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                    ${role === 'user' ? `<div class="avatar">${avatarLetter}</div>` : ''}
+                </div>
                 <div class="message-bubble">${text}</div>
             `;
 
@@ -424,21 +674,16 @@
         }
 
         function handleSuggestionClick(suggestionIndex) {
-            // Disable all suggestion buttons
             const allButtons = document.querySelectorAll('.suggestion-btn');
             allButtons.forEach(btn => {
                 btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
             });
 
-            // Move to next step (user's response)
             currentStep++;
             if (currentStep < conversation.length) {
                 const userMessage = conversation[currentStep];
                 addMessage(userMessage.role, userMessage.text);
 
-                // Then show assistant's response after a delay
                 currentStep++;
                 if (currentStep < conversation.length) {
                     setTimeout(() => {
@@ -447,8 +692,8 @@
                             typing.remove();
                             const assistantMessage = conversation[currentStep];
                             addMessage(assistantMessage.role, assistantMessage.text, assistantMessage.suggestions);
-                        }, 1000);
-                    }, 500);
+                        }, 1200);
+                    }, 600);
                 }
             }
         }
@@ -460,16 +705,14 @@
         }
 
         function initChat() {
-            // Show first message
             const typing = showTypingIndicator();
             setTimeout(() => {
                 typing.remove();
                 const firstMessage = conversation[0];
                 addMessage(firstMessage.role, firstMessage.text, firstMessage.suggestions);
-            }, 1000);
+            }, 1200);
         }
 
-        // Initialize the chat
         initChat();
     </script>
 </body>
