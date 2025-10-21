@@ -406,6 +406,92 @@
             scroll-behavior: smooth;
         }
 
+        .input-area {
+            padding: 24px 40px;
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.8) 0%, rgba(20, 20, 30, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .message-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .send-btn {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #4A90E2 0%, #6366F1 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+            white-space: nowrap;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .send-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-message {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-message strong {
+            color: #fbbf24;
+            display: block;
+            margin-bottom: 4px;
+        }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .container {
@@ -442,6 +528,14 @@
             .typing-indicator {
                 margin-left: 0;
             }
+
+            .input-area {
+                padding: 16px 20px;
+            }
+
+            .send-btn {
+                padding: 14px 20px;
+            }
         }
     </style>
 </head>
@@ -467,6 +561,18 @@
         </div>
         <div class="chat-container" id="chatContainer">
             <!-- Messages will be inserted here -->
+        </div>
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input
+                    type="text"
+                    id="messageInput"
+                    class="message-input"
+                    placeholder="Ask me anything about your network, security, or infrastructure..."
+                    autocomplete="off"
+                />
+            </div>
+            <button id="sendBtn" class="send-btn" onclick="sendCustomMessage()">Send</button>
         </div>
     </div>
 
@@ -703,6 +809,124 @@
             chatContainer.innerHTML = '';
             initChat();
         }
+
+        function generateSmartResponse(userQuestion) {
+            const lowerQ = userQuestion.toLowerCase();
+
+            // Check for specific topics and provide contextual responses
+            if (lowerQ.includes('psirt') || lowerQ.includes('security') || lowerQ.includes('vulnerabilit')) {
+                return {
+                    text: "In this demo, I showed how I map PSIRTs to your specific devices. For live deployment, I would analyze your question against real-time security advisories and provide detailed remediation guidance. You can explore the PSIRT workflow by clicking the 'PSIRTs first' option above.",
+                    showInfo: true
+                };
+            }
+
+            if (lowerQ.includes('license') || lowerQ.includes('licensing')) {
+                return {
+                    text: "I can help optimize your licensing! In the full system, I track license utilization across your entire estate and identify opportunities for reclamation and right-sizing. In this demo, you'll see license optimization when you follow the conversation flow - we recovered $184k in unused licenses.",
+                    showInfo: true
+                };
+            }
+
+            if (lowerQ.includes('capacity') || lowerQ.includes('bandwidth') || lowerQ.includes('wan')) {
+                return {
+                    text: "Great question about capacity planning! In production, I continuously monitor your WAN links and predict saturation windows. This demo shows capacity management for 46 at-risk branches - try selecting 'Branch capacity risks' from the suggestions above to see how I help.",
+                    showInfo: true
+                };
+            }
+
+            if (lowerQ.includes('compliance') || lowerQ.includes('pci') || lowerQ.includes('sox') || lowerQ.includes('audit')) {
+                return {
+                    text: "Compliance monitoring is one of my key capabilities. I can scan for PCI, SOX, HIPAA, and custom policy violations. In this demo, you'll see compliance scanning later in the conversation - we found 12 PCI violations and 4 SOX issues. Continue the guided flow to explore this.",
+                    showInfo: true
+                };
+            }
+
+            if (lowerQ.includes('aci') || lowerQ.includes('data center') || lowerQ.includes('datacenter')) {
+                return {
+                    text: "For ACI and data center operations, I monitor TCAM utilization, fabric health, and recommend cleanup or expansion. The demo includes ACI Fabric-03 optimization - follow the conversation to see how I help reclaim 9-12% TCAM through cleanup.",
+                    showInfo: true
+                };
+            }
+
+            if (lowerQ.includes('cost') || lowerQ.includes('saving') || lowerQ.includes('budget')) {
+                return {
+                    text: "I identify cost optimization opportunities across your estate. In this demo scenario, I found ~$184k/year in license reclamation savings, balanced against $62k in necessary WAN upgrades. The Executive Overview section shows the complete financial picture.",
+                    showInfo: true
+                };
+            }
+
+            if (lowerQ.includes('how') || lowerQ.includes('what') || lowerQ.includes('when') || lowerQ.includes('why') || lowerQ.includes('can you')) {
+                return {
+                    text: "I'm a demonstration of Cisco Customer Intelligence for Wells Fargo Network Operations. While I can't answer that specific question in demo mode, I can show you end-to-end workflows for PSIRTs, capacity management, compliance, licensing, and executive reporting. Use the suggestion buttons above to explore each area, or ask about a specific topic like 'security', 'licensing', or 'compliance'.",
+                    showInfo: true
+                };
+            }
+
+            // Generic fallback
+            return {
+                text: "That's an interesting question! This is a guided demo showcasing specific workflows. I'd recommend using the suggestion buttons to explore the capabilities, or ask me about: PSIRTs & security, capacity planning, licensing optimization, compliance scanning, ACI operations, or cost savings.",
+                showInfo: true
+            };
+        }
+
+        function sendCustomMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+
+            // Generate and show assistant response
+            setTimeout(() => {
+                const typing = showTypingIndicator();
+                setTimeout(() => {
+                    typing.remove();
+                    const response = generateSmartResponse(message);
+
+                    // Create custom message with info box
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message assistant';
+
+                    let html = `
+                        <div class="message-header">
+                            <div class="avatar">C</div>
+                            <div class="role-label">Cisco AI Assistant</div>
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                        <div class="message-bubble">${response.text}</div>
+                    `;
+
+                    if (response.showInfo) {
+                        html += `
+                            <div class="info-message" style="margin-left: 48px;">
+                                <strong>💡 Demo Mode</strong>
+                                This is a prototype showcasing key capabilities. In production, I would provide real-time analysis of your actual infrastructure, with live data from Cisco DNA Center, vManage, SecureX, and Smart Licensing.
+                            </div>
+                        `;
+                    }
+
+                    messageDiv.innerHTML = html;
+                    chatContainer.appendChild(messageDiv);
+                    scrollToBottom();
+                }, 1200);
+            }, 600);
+        }
+
+        // Add Enter key support
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('messageInput');
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendCustomMessage();
+                    }
+                });
+            }
+        });
 
         function initChat() {
             const typing = showTypingIndicator();
