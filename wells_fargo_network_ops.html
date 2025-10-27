@@ -686,7 +686,19 @@
             { role: "user", text: "Apply Fri 02:00" },
             {
                 role: "assistant",
-                text: "Scheduled. Collaboration note: two CUCM clusters are one minor behind standard; propose rolling upgrades with zero-touch user impact. Proceed or defer?",
+                text: "Scheduled. Alert: I just detected an issue - Dallas datacenter Nexus 9K spine switch reporting high CoPP (Control Plane Policing) drops and elevated CPU (68%). Suspected protocol storm or misconfiguration. This could impact fabric stability. Want me to file a TAC case immediately?",
+                suggestions: ["Yes, file TAC case now", "Let me investigate first", "Just monitor for now"]
+            },
+            { role: "user", text: "Yes, file TAC case now" },
+            {
+                role: "assistant",
+                text: "Filing TAC case with Cisco... Uploading diagnostics: show tech-support, CoPP stats, CPU history, interface counters, fabric health, recent config changes. Severity: 2 (Critical - production network impacted). Contract: SmartNet 24x7x4. Case created successfully! **TAC Case #: 625847392**. Assigned to: Advanced Services Queue. Estimated response: <2 hours. You'll receive updates via email and Webex. Auto-attach live telemetry stream?",
+                suggestions: ["Yes, attach telemetry", "No, manual updates only"]
+            },
+            { role: "user", text: "Yes, attach telemetry" },
+            {
+                role: "assistant",
+                text: "Telemetry stream attached to TAC case 625847392. TAC engineer will have real-time access to: CPU/memory graphs, interface statistics, syslogs, SNMP traps, and fabric analytics. I'll monitor the case and notify you of any TAC updates or recommended actions. Meanwhile, Collaboration note: two CUCM clusters are one minor behind standard; propose rolling upgrades with zero-touch user impact. Proceed or defer?",
                 suggestions: ["Plan upgrades", "Defer 30 days"]
             },
             { role: "user", text: "Defer 30 days" },
@@ -717,7 +729,25 @@
             {
                 role: "assistant",
                 text: "Brief sent with links to change plans, approvals, and executive brief. Anything else today?",
-                suggestions: ["/priorities", "/what-changed", "We're done"]
+                suggestions: ["/priorities", "/what-changed", "File a TAC case", "We're done"]
+            },
+            { role: "user", text: "File a TAC case" },
+            {
+                role: "assistant",
+                text: "I can file a TAC case for you. What issue are you experiencing? Please describe the problem, affected device(s), and severity level, or I can file for any detected issues in our conversation. Would you like me to:",
+                suggestions: ["File for the Nexus 9K issue we found", "Report a different issue", "Never mind"]
+            },
+            { role: "user", text: "Report a different issue" },
+            {
+                role: "assistant",
+                text: "Got it. For a new issue, I'd collect: Device type/model, problem description, symptoms, troubleshooting steps tried, affected users/sites, and business impact. In production, you'd provide these details via voice or text, and I'd auto-file with diagnostics. For this demo, the Nexus 9K case (TAC #625847392) shows the complete workflow. Ready to continue?",
+                suggestions: ["Yes, continue", "Back to main menu"]
+            },
+            { role: "user", text: "Yes, continue" },
+            {
+                role: "assistant",
+                text: "Perfect. Remember: TAC case #625847392 is monitoring the Dallas Nexus spine issue. You'll get alerts when TAC responds or requests info. Anything else?",
+                suggestions: ["/priorities", "We're done"]
             },
             { role: "user", text: "We're done — thanks!" },
             {
@@ -1158,6 +1188,14 @@
                 };
             }
 
+            // Check for TAC support requests (applies to all personas)
+            if (lowerQ.includes('tac') || lowerQ.includes('support case') || lowerQ.includes('support ticket') || lowerQ.includes('file case') || lowerQ.includes('open case') || lowerQ.includes('technical support')) {
+                return {
+                    text: "I can file TAC (Technical Assistance Center) cases automatically when I detect issues. In the Network Ops demo, I detect a Nexus 9K issue with high CoPP drops and elevated CPU, then file TAC case #625847392 with full diagnostics, severity classification, and live telemetry stream. The case is assigned to Advanced Services with <2 hour response time. Follow the guided conversation to see the complete TAC filing workflow in action.",
+                    showInfo: true
+                };
+            }
+
             // Persona-specific responses
             if (currentPersona === "Network Ops (Global)") {
                 if (lowerQ.includes('psirt') || lowerQ.includes('security') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
@@ -1178,8 +1216,14 @@
                         showInfo: true
                     };
                 }
+                if (lowerQ.includes('issue') || lowerQ.includes('problem') || lowerQ.includes('outage') || lowerQ.includes('down') || lowerQ.includes('error')) {
+                    return {
+                        text: "When I detect issues, I can automatically file TAC cases with full diagnostics. In this demo, I detect a Nexus 9K spine switch with high CoPP drops and elevated CPU (68%), then file TAC case #625847392 with severity 2 (critical). Complete with real-time telemetry stream and <2 hour response SLA. Continue the conversation to see this workflow.",
+                        showInfo: true
+                    };
+                }
                 return {
-                    text: "As a Network Ops assistant, I help with PSIRTs, capacity planning, compliance scanning, ACI operations, and change management. Use the suggestion buttons above to explore these workflows, or ask about a specific area like security, capacity, or compliance.",
+                    text: "As a Network Ops assistant, I help with PSIRTs, capacity planning, compliance scanning, ACI operations, TAC case filing, and change management. Use the suggestion buttons above to explore these workflows, or ask about a specific area like security, capacity, or TAC support.",
                     showInfo: true
                 };
             }
