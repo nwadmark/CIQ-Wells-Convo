@@ -2,7 +2,7 @@
 
 ##  CIQ AI Assistant – WF Network Ops Prototype
 
-An AI-powered conversational assistant prototype built for Cisco CX/CIQ, 
+An AI-powered conversational assistant prototype built for CIQ, 
 demonstrating intelligent self-service for enterprise network operations teams.
 
 ## What It Does
