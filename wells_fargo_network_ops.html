@@ -656,6 +656,77 @@
     </div>
 
     <script>
+        // ─── Cisco IQ Simulated Network Operational Data (Wells Fargo) ───
+        const ciscoIQData = {
+            assets: [
+                { name: "WF-RTR-CLT-01", type: "Router", model: "Cisco ASR 1006-X", datacenter: "Charlotte", healthScore: 92, lifecycleStatus: "Active" },
+                { name: "WF-RTR-CLT-02", type: "Router", model: "Cisco ASR 1002-HX", datacenter: "Charlotte", healthScore: 87, lifecycleStatus: "Active" },
+                { name: "WF-SW-CLT-01", type: "Switch", model: "Cisco Catalyst 9300", datacenter: "Charlotte", healthScore: 78, lifecycleStatus: "Active" },
+                { name: "WF-FW-CLT-01", type: "Firewall", model: "Cisco Firepower 4125", datacenter: "Charlotte", healthScore: 95, lifecycleStatus: "Active" },
+                { name: "WF-RTR-MSP-01", type: "Router", model: "Cisco ASR 9001", datacenter: "Minneapolis", healthScore: 64, lifecycleStatus: "End of Sale" },
+                { name: "WF-SW-MSP-01", type: "Switch", model: "Cisco Catalyst 9500", datacenter: "Minneapolis", healthScore: 91, lifecycleStatus: "Active" },
+                { name: "WF-FW-MSP-01", type: "Firewall", model: "Cisco ASA 5545-X", datacenter: "Minneapolis", healthScore: 53, lifecycleStatus: "End of Life" },
+                { name: "WF-SW-MSP-02", type: "Switch", model: "Cisco Nexus 9336C-FX2", datacenter: "Minneapolis", healthScore: 88, lifecycleStatus: "Active" },
+                { name: "WF-RTR-SFO-01", type: "Router", model: "Cisco ISR 4461", datacenter: "San Francisco", healthScore: 71, lifecycleStatus: "Active" },
+                { name: "WF-SW-SFO-01", type: "Switch", model: "Cisco Catalyst 9200", datacenter: "San Francisco", healthScore: 46, lifecycleStatus: "End of Life" },
+                { name: "WF-FW-SFO-01", type: "Firewall", model: "Cisco Firepower 2130", datacenter: "San Francisco", healthScore: 83, lifecycleStatus: "Active" },
+                { name: "WF-SW-SFO-02", type: "Switch", model: "Cisco Nexus 93180YC-FX", datacenter: "San Francisco", healthScore: 69, lifecycleStatus: "End of Sale" }
+            ],
+
+            vulnerabilities: [
+                { cveId: "CVE-2024-20353", severity: "Critical", affectedDevices: ["WF-FW-CLT-01", "WF-FW-SFO-01"], daysOpen: 42, recommendedFix: "Upgrade to FTD 7.4.1.1 or apply hotfix cisco-sa-asaftd-websrvs-dos" },
+                { cveId: "CVE-2024-20359", severity: "Critical", affectedDevices: ["WF-FW-MSP-01"], daysOpen: 38, recommendedFix: "Migrate from ASA 5545-X to Firepower 4100; device is End of Life" },
+                { cveId: "CVE-2023-20198", severity: "Critical", affectedDevices: ["WF-SW-CLT-01", "WF-SW-SFO-01", "WF-RTR-SFO-01"], daysOpen: 127, recommendedFix: "Upgrade IOS-XE to 17.9.4a or later; disable HTTP/HTTPS server if unused" },
+                { cveId: "CVE-2024-20356", severity: "High", affectedDevices: ["WF-SW-MSP-02", "WF-SW-SFO-02"], daysOpen: 29, recommendedFix: "Apply NX-OS patch 10.4(2) and restrict CIMC access to management VLAN" },
+                { cveId: "CVE-2024-20291", severity: "High", affectedDevices: ["WF-RTR-CLT-01", "WF-RTR-CLT-02", "WF-RTR-MSP-01"], daysOpen: 55, recommendedFix: "Upgrade to IOS-XE 17.12.3 or apply ACL hardening per PSIRT advisory" },
+                { cveId: "CVE-2023-20273", severity: "High", affectedDevices: ["WF-SW-CLT-01", "WF-SW-SFO-01"], daysOpen: 112, recommendedFix: "Upgrade IOS-XE to 17.9.4a; rotate local credentials on affected switches" },
+                { cveId: "CVE-2024-20379", severity: "Medium", affectedDevices: ["WF-FW-MSP-01", "WF-FW-CLT-01"], daysOpen: 18, recommendedFix: "Disable WebVPN customization or upgrade to ASA 9.18(4.22)" },
+                { cveId: "CVE-2024-20314", severity: "Medium", affectedDevices: ["WF-RTR-SFO-01"], daysOpen: 34, recommendedFix: "Upgrade IOS-XE to 17.11.1a; limit SSH access to jump hosts only" }
+            ],
+
+            security: {
+                postureScore: 67,
+                postureMax: 100,
+                recentAnomalies: [
+                    { description: "Unusual East-West traffic spike on MPLS backbone between Charlotte and Minneapolis DCs", detectedDate: "2026-02-22", severity: "High" },
+                    { description: "Repeated failed TACACS+ authentication attempts from WF-SW-SFO-01 to ISE cluster", detectedDate: "2026-02-24", severity: "Medium" },
+                    { description: "Unexpected BGP route advertisement from WF-RTR-MSP-01 leaking internal prefixes to DMZ segment", detectedDate: "2026-02-20", severity: "Critical" }
+                ],
+                compliance: {
+                    pciDss: { status: "Non-Compliant", findings: 4, details: "Open findings on firewall rule review cadence and encrypted key management" },
+                    sox: { status: "Compliant with Exceptions", findings: 2, details: "Two change-management audit gaps in Minneapolis DC switch configs" }
+                }
+            },
+
+            assessments: {
+                lastAssessmentDate: "2026-02-10",
+                misconfigurations: [
+                    { deviceName: "WF-SW-CLT-01", issue: "Telnet enabled on management interface; SSH-only policy violated", riskLevel: "High" },
+                    { deviceName: "WF-FW-MSP-01", issue: "Default SNMP community string 'public' still configured", riskLevel: "Critical" },
+                    { deviceName: "WF-RTR-SFO-01", issue: "NTP configured with unauthenticated public servers instead of internal stratum-1", riskLevel: "Medium" },
+                    { deviceName: "WF-SW-SFO-02", issue: "Spanning-tree PortFast enabled on uplink trunk ports", riskLevel: "High" },
+                    { deviceName: "WF-RTR-CLT-02", issue: "OSPF adjacency using plaintext authentication instead of MD5", riskLevel: "Medium" }
+                ],
+                configDriftCount: 23
+            },
+
+            supportCases: [
+                { caseNumber: "SR-694281037", title: "Firepower 4125 intermittent packet drops on TLS 1.3 inspection", severity: "S1", daysOpen: 3, status: "Customer Updated", assignedEngineer: "Rajesh Krishnamurthy" },
+                { caseNumber: "SR-694277814", title: "ASR 1006-X memory leak in QoS policy-map after IOS-XE 17.11 upgrade", severity: "S2", daysOpen: 11, status: "Pending Engineering", assignedEngineer: "Maria Santos" },
+                { caseNumber: "SR-694265590", title: "Catalyst 9300 stack ring failure on switch 3 of 8", severity: "S2", daysOpen: 18, status: "Workaround Provided", assignedEngineer: "David Chen" },
+                { caseNumber: "SR-694259183", title: "ISE 3.3 posture policy not enforcing on 802.1X re-auth for Nexus 9336C", severity: "S3", daysOpen: 26, status: "Pending Customer", assignedEngineer: "Anil Mehta" },
+                { caseNumber: "SR-694250741", title: "SD-WAN vManage certificate renewal failing across Minneapolis hub", severity: "S2", daysOpen: 34, status: "Escalated to BU", assignedEngineer: "Jennifer Walsh" },
+                { caseNumber: "SR-694243298", title: "Nexus 93180YC-FX CoPP policy drops legitimate SNMP polling in SFO DC", severity: "S4", daysOpen: 45, status: "Solution Provided", assignedEngineer: "Thomas Rivera" }
+            ],
+
+            renewals: [
+                { contractId: "CON-SNT-WF-2024-0871", productName: "Cisco DNA Advantage — Catalyst 9300/9500 (217 licenses)", expiryDate: "2026-04-15", annualValue: 1243000 },
+                { contractId: "CON-ECMU-WF-2024-0344", productName: "Cisco Secure Firewall Threat Defense — Firepower 4100 Series", expiryDate: "2026-03-28", annualValue: 487500 },
+                { contractId: "CON-SNT-WF-2024-0592", productName: "Cisco Smart Net Total Care — ASR 1000 Series Routers", expiryDate: "2026-05-01", annualValue: 329000 },
+                { contractId: "CON-SAU-WF-2024-0118", productName: "Cisco ThousandEyes — Enterprise Agent (85 agents)", expiryDate: "2026-04-07", annualValue: 178500 }
+            ]
+        };
+
         let currentPersona = null;
         let personaConversations = {};
 
