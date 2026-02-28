@@ -761,6 +761,51 @@
             }
         }
 
+        /* ─── Quick Action Bar ─── */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(10, 10, 18, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            overflow-x: auto;
+            flex-shrink: 0;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .quick-actions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-action-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-pill:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+        }
+
+        .quick-action-pill:active {
+            transform: translateY(0);
+        }
+
         @media (max-width: 480px) {
             .attention-cards {
                 grid-template-columns: 1fr;
@@ -804,6 +849,15 @@
             <div class="attention-cards" id="attentionCards">
                 <!-- Cards populated by JS from ciscoIQData -->
             </div>
+        </div>
+
+        <!-- Quick Action Bar -->
+        <div class="quick-actions">
+            <button class="quick-action-pill" onclick="handleAttentionClick('What misconfigurations were found in the last assessment?')">🔍 Run Assessment</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('Give me a security posture summary')">🛡 Security Briefing</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('Show me all open TAC cases')">📋 Open Cases</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('What are the most critical vulnerabilities right now?')">⚠️ Critical Alerts</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('What contracts are expiring in the next 90 days?')">📅 Renewal Risk</button>
         </div>
 
         <div class="chat-container" id="chatContainer">
