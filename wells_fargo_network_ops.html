@@ -1524,148 +1524,224 @@
             initChat();
         }
 
-        function generateSmartResponse(userQuestion) {
-            const lowerQ = userQuestion.toLowerCase();
+        // ─── Data-Driven Response Helpers ──────────────────────────────
+        const _sevRank = { Critical: 0, High: 1, Medium: 2, Low: 3, S1: 0, S2: 1, S3: 2, S4: 3 };
+        function _fmtDollars(v) { return v >= 1000000 ? `$${(v/1000000).toFixed(1)}M` : `$${(v/1000).toFixed(0)}K`; }
+        function _daysUntil(dateStr) { return Math.ceil((new Date(dateStr) - new Date()) / 86400000); }
 
-            // If no persona selected yet, guide them to select one
+        // ── Single-item detail builders ──────────────────────────────────
+        function _cveDetail(cve) {
+            return `<strong>${cve.cveId}</strong> is a ${cve.severity}-severity advisory affecting ${cve.affectedDevices.length} device${cve.affectedDevices.length > 1 ? 's' : ''}, open for ${cve.daysOpen} days.<br><br>` +
+                `• <strong>Devices:</strong> ${cve.affectedDevices.join(', ')}<br>` +
+                `• <strong>Recommended fix:</strong> ${cve.recommendedFix}<br><br>` +
+                `I'd recommend staging a remediation pilot starting with the lowest-risk device. Want me to draft a change plan or export to ServiceNow?`;
+        }
+
+        function _caseDetail(sr) {
+            return `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days — currently <em>${sr.status}</em>.<br><br>` +
+                `• <strong>Issue:</strong> ${sr.title}<br>` +
+                `• <strong>Engineer:</strong> ${sr.assignedEngineer}<br><br>` +
+                (sr.daysOpen >= 14 ? `This case is aging — consider requesting a management escalation or callback. ` : ``) +
+                `Want me to escalate, request a callback, or attach additional diagnostics?`;
+        }
+
+        function _renewalDetail(con) {
+            const d = _daysUntil(con.expiryDate);
+            return `<strong>${con.contractId}</strong> covers ${con.productName} and expires <strong>${con.expiryDate}</strong> (${d} days remaining).<br><br>` +
+                `• <strong>Annual value:</strong> ${_fmtDollars(con.annualValue)}<br><br>` +
+                (d <= 45 ? `This is getting tight — I'd recommend generating a renewal quote now. ` : ``) +
+                `Want me to prepare 1/3/5-year co-term options, or route directly to Procurement?`;
+        }
+
+        function _misconfigDetail(m) {
+            return `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk finding from the ${ciscoIQData.assessments.lastAssessmentDate} assessment.<br><br>` +
+                `• <strong>Issue:</strong> ${m.issue}<br>` +
+                `• <strong>Estate-wide drift:</strong> ${ciscoIQData.assessments.configDriftCount} devices off golden config<br><br>` +
+                `Want me to push a remediation config, open a change request, or schedule a maintenance window?`;
+        }
+
+        // ── Category-level builders ──────────────────────────────────────
+        function _vulnCategory() {
+            const v = ciscoIQData.vulnerabilities;
+            const bySev = { Critical: 0, High: 0, Medium: 0 };
+            v.forEach(c => bySev[c.severity] = (bySev[c.severity] || 0) + 1);
+            const sorted = [...v].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen));
+            const top5 = sorted.slice(0, 5);
+
+            let html = `You have <strong>${v.length} open CVEs</strong> — ${bySev.Critical} critical, ${bySev.High} high, ${bySev.Medium} medium — mapped to your device inventory.<br><br>`;
+            top5.forEach(c => {
+                html += `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.length} device${c.affectedDevices.length > 1 ? 's' : ''}, open ${c.daysOpen}d. Fix: ${c.recommendedFix.split(';')[0]}.<br>`;
+            });
+            html += `<br>I'd start with ${sorted[0].cveId} — it's been open the longest at ${sorted[0].daysOpen} days. Want me to draft a remediation plan or stage a pilot?`;
+            return html;
+        }
+
+        function _securityCategory() {
+            const sec = ciscoIQData.security;
+            const anomalies = [...sec.recentAnomalies].sort((a, b) => _sevRank[a.severity] - _sevRank[b.severity]);
+
+            let html = `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong>, with ${anomalies.length} recent anomalies and compliance gaps in both PCI-DSS and SOX.<br><br>`;
+            anomalies.forEach(a => {
+                html += `• <strong>${a.severity}:</strong> ${a.description} <span style="opacity:.5">(${a.detectedDate})</span><br>`;
+            });
+            html += `• <strong>PCI-DSS:</strong> ${sec.compliance.pciDss.status} — ${sec.compliance.pciDss.findings} findings. ${sec.compliance.pciDss.details}<br>`;
+            html += `• <strong>SOX:</strong> ${sec.compliance.sox.status} — ${sec.compliance.sox.findings} findings. ${sec.compliance.sox.details}<br>`;
+            html += `<br>The ${anomalies[0].severity.toLowerCase()}-severity anomaly from ${anomalies[0].detectedDate} is the top priority. Want me to investigate further or open a remediation task?`;
+            return html;
+        }
+
+        function _assetCategory() {
+            const a = ciscoIQData.assets;
+            const sorted = [...a].sort((x, y) => x.healthScore - y.healthScore);
+            const eol = a.filter(d => d.lifecycleStatus === 'End of Life');
+            const eos = a.filter(d => d.lifecycleStatus === 'End of Sale');
+            const avgHealth = Math.round(a.reduce((s, d) => s + d.healthScore, 0) / a.length);
+
+            let html = `You have <strong>${a.length} monitored devices</strong> across ${[...new Set(a.map(d => d.datacenter))].length} datacenters — average health ${avgHealth}/100, with ${eol.length} End of Life and ${eos.length} End of Sale.<br><br>`;
+            sorted.slice(0, 5).forEach(d => {
+                const flag = d.lifecycleStatus === 'End of Life' ? ' ⚠️ EOL' : d.lifecycleStatus === 'End of Sale' ? ' ⚠️ EOS' : '';
+                html += `• <strong>${d.name}</strong> (${d.model}, ${d.datacenter}) — Health ${d.healthScore}${flag}<br>`;
+            });
+            if (eol.length > 0) {
+                html += `<br>The ${eol.length} EOL device${eol.length > 1 ? 's' : ''} (${eol.map(d => d.name).join(', ')}) no longer receive${eol.length === 1 ? 's' : ''} security patches. Want me to build a refresh plan or check contract coverage?`;
+            } else {
+                html += `<br>No EOL devices — your estate is in good shape. Want a detailed health breakdown by datacenter?`;
+            }
+            return html;
+        }
+
+        function _assessmentCategory() {
+            const asmts = ciscoIQData.assessments;
+            const sorted = [...asmts.misconfigurations].sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel]);
+
+            let html = `Last assessment <strong>(${asmts.lastAssessmentDate})</strong> found ${sorted.length} misconfigurations, with ${asmts.configDriftCount} devices drifted from golden config.<br><br>`;
+            sorted.slice(0, 5).forEach(m => {
+                html += `• <strong>${m.deviceName}</strong> — ${m.riskLevel}: ${m.issue}<br>`;
+            });
+            html += `<br>The ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} is the most urgent. Want me to push a fix, open a change request, or run a fresh assessment?`;
+            return html;
+        }
+
+        function _casesCategory() {
+            const cases = ciscoIQData.supportCases;
+            const s1s2 = cases.filter(c => c.severity === 'S1' || c.severity === 'S2');
+            const sorted = [...cases].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen));
+            const aging = s1s2.filter(c => c.daysOpen >= 14);
+
+            let html = `You have <strong>${cases.length} open TAC cases</strong> — ${s1s2.length} at S1/S2 severity.`;
+            if (aging.length > 0) html += ` <strong>${aging.length}</strong> ha${aging.length > 1 ? 've' : 's'} been open over 2 weeks.`;
+            html += `<br><br>`;
+            sorted.slice(0, 5).forEach(c => {
+                const flag = (c.severity === 'S1' || c.severity === 'S2') && c.daysOpen >= 14 ? ' ⚠️' : '';
+                html += `• <strong>${c.caseNumber}</strong> (${c.severity}) — ${c.title.substring(0, 65)}${c.title.length > 65 ? '…' : ''}, ${c.daysOpen}d, <em>${c.status}</em>${flag}<br>`;
+            });
+            const worst = sorted[0];
+            html += `<br>${worst.caseNumber} is the highest priority. Want me to escalate, request a callback from ${worst.assignedEngineer}, or attach diagnostics?`;
+            return html;
+        }
+
+        function _renewalsCategory() {
+            const r = ciscoIQData.renewals;
+            const sorted = [...r].sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+            const totalValue = r.reduce((s, c) => s + c.annualValue, 0);
+            const soonest = _daysUntil(sorted[0].expiryDate);
+
+            let html = `<strong>${r.length} contracts</strong> are approaching renewal — combined annual value ${_fmtDollars(totalValue)}. The soonest expires in ${soonest} days.<br><br>`;
+            sorted.forEach(c => {
+                const d = _daysUntil(c.expiryDate);
+                const label = c.productName.length > 55 ? c.productName.substring(0, 55) + '…' : c.productName;
+                html += `• <strong>${c.contractId}</strong> — ${label}, expires ${c.expiryDate} (${d}d), ${_fmtDollars(c.annualValue)}/yr<br>`;
+            });
+            html += `<br>The ${sorted[0].contractId.split('-').slice(-1)[0]} contract is the most time-sensitive. Want me to generate renewal quotes with co-term options or route to Procurement?`;
+            return html;
+        }
+
+        function _prioritiesDigest() {
+            const topVuln = [...ciscoIQData.vulnerabilities].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen))[0];
+            const topMisconfig = [...ciscoIQData.assessments.misconfigurations].sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel])[0];
+            const topCase = [...ciscoIQData.supportCases].filter(c => c.severity === 'S1' || c.severity === 'S2').sort((a, b) => b.daysOpen - a.daysOpen)[0];
+            const topRenewal = [...ciscoIQData.renewals].sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+            const sec = ciscoIQData.security;
+            const critAnomaly = [...sec.recentAnomalies].sort((a, b) => _sevRank[a.severity] - _sevRank[b.severity])[0];
+
+            let html = `Here's your cross-domain priority digest — items that need attention right now.<br><br>`;
+            html += `🔴 <strong>Vulnerabilities:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs open, longest is ${topVuln.cveId} (${topVuln.daysOpen} days, ${topVuln.affectedDevices.length} devices). Remediation overdue.<br>`;
+            html += `🟡 <strong>Config Risk:</strong> ${topMisconfig.riskLevel} misconfiguration on ${topMisconfig.deviceName} — ${topMisconfig.issue.toLowerCase()}<br>`;
+            html += `🔵 <strong>Support:</strong> TAC case ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — <em>${topCase.status}</em>.<br>`;
+            html += `🟣 <strong>Contracts:</strong> ${topRenewal.contractId} (${_fmtDollars(topRenewal.annualValue)}/yr) expires in ${_daysUntil(topRenewal.expiryDate)} days — renewal not yet initiated.<br>`;
+            html += `⚠️ <strong>Security Posture:</strong> Score ${sec.postureScore}/${sec.postureMax}. ${critAnomaly.description.split(' on ')[0]} detected ${critAnomaly.detectedDate}.<br>`;
+            html += `<br>I'd start with the config fix on ${topMisconfig.deviceName} (quick win, high risk) and the contract renewal (time-sensitive). Want me to take action on any of these?`;
+            return html;
+        }
+
+        // ─── Unified Smart Response Router ───────────────────────────────
+        function generateSmartResponse(userQuestion) {
+            const q = userQuestion.toLowerCase();
+
+            // ── Single-item lookups first (work even before persona selection) ──
+            const cveMatch = userQuestion.match(/CVE-[\d-]+/i);
+            if (cveMatch) {
+                const cve = ciscoIQData.vulnerabilities.find(v => v.cveId.toLowerCase() === cveMatch[0].toLowerCase());
+                if (cve) return { text: _cveDetail(cve), showInfo: false };
+            }
+
+            const srMatch = userQuestion.match(/SR-\d+/i);
+            if (srMatch) {
+                const sr = ciscoIQData.supportCases.find(c => c.caseNumber === srMatch[0]);
+                if (sr) return { text: _caseDetail(sr), showInfo: false };
+            }
+
+            const conMatch = userQuestion.match(/CON-[\w-]+/i);
+            if (conMatch) {
+                const con = ciscoIQData.renewals.find(r => r.contractId === conMatch[0]);
+                if (con) return { text: _renewalDetail(con), showInfo: false };
+            }
+
+            const deviceMisconfig = ciscoIQData.assessments.misconfigurations.find(m => q.includes(m.deviceName.toLowerCase()));
+            if (deviceMisconfig && (q.includes('misconfig') || q.includes('config') || q.includes('finding') || q.includes('risk'))) {
+                return { text: _misconfigDetail(deviceMisconfig), showInfo: false };
+            }
+
+            // ── Category-level data queries (also work before persona selection) ──
+            if (q.includes('vulnerabilit') || q.includes('cve') || q.includes('psirt') || q.includes('patch')) {
+                return { text: _vulnCategory(), showInfo: false };
+            }
+
+            if (q.includes('security') || q.includes('posture') || q.includes('compliance') || q.includes('pci') || q.includes('sox') || q.includes('anomal')) {
+                return { text: _securityCategory(), showInfo: false };
+            }
+
+            if (q.includes('asset') || q.includes('device') || q.includes('inventory') || q.includes('hardware') || q.includes('eol') || q.includes('end of life')) {
+                return { text: _assetCategory(), showInfo: false };
+            }
+
+            if (q.includes('assessment') || q.includes('misconfiguration') || q.includes('misconfig') || q.includes('config drift') || q.includes('drift')) {
+                return { text: _assessmentCategory(), showInfo: false };
+            }
+
+            if (q.includes('case') || q.includes('tac') || q.includes('support')) {
+                return { text: _casesCategory(), showInfo: false };
+            }
+
+            if (q.includes('renewal') || q.includes('contract') || q.includes('expir') || q.includes('license')) {
+                return { text: _renewalsCategory(), showInfo: false };
+            }
+
+            if (q.includes('attention') || q.includes('priorit') || q.includes('summary') || q.includes('what needs') || q.includes('/priorities') || q.includes('overview') || q.includes('digest')) {
+                return { text: _prioritiesDigest(), showInfo: false };
+            }
+
+            // ── Generic fallback ────────────────────────────────────────────
             if (!currentPersona) {
                 return {
-                    text: "Please select a persona first using the buttons above (Network Ops, Security Ops, Procurement, or Executive Overview) to start our conversation.",
+                    text: "Please select a persona first using the buttons above (Network Ops, Security Ops, Procurement, or Executive Overview) to start our conversation. You can also ask me about vulnerabilities, assets, cases, or contracts at any time.",
                     showInfo: true
                 };
             }
 
-            // Check for TAC support requests (applies to all personas)
-            if (lowerQ.includes('tac') || lowerQ.includes('support case') || lowerQ.includes('support ticket') || lowerQ.includes('file case') || lowerQ.includes('open case') || lowerQ.includes('technical support')) {
-                return {
-                    text: "I can file TAC (Technical Assistance Center) cases automatically when I detect issues. In the Network Ops demo, I detect a Nexus 9K issue with high CoPP drops and elevated CPU, then file TAC case #625847392 with full diagnostics, severity classification, and live telemetry stream. The case is assigned to Advanced Services with <2 hour response time. Follow the guided conversation to see the complete TAC filing workflow in action.",
-                    showInfo: true
-                };
-            }
-
-            // Persona-specific responses
-            if (currentPersona === "Network Ops (Global)") {
-                if (lowerQ.includes('psirt') || lowerQ.includes('security') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
-                    return {
-                        text: "For security advisories, I map PSIRTs directly to your devices and can draft remediation plans. In this demo, we handle 3 critical PSIRTs affecting 217 devices (Catalyst 9300, ASA, FXOS) with automated pilot ring deployment. Use the suggestion buttons to walk through the PSIRT remediation workflow.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('capacity') || lowerQ.includes('bandwidth') || lowerQ.includes('wan') || lowerQ.includes('branch')) {
-                    return {
-                        text: "I monitor capacity across all 46 at-risk branches and can predict saturation windows. In this demo, we fix QoS issues at Austin Domain and plan upgrades for Newark (19 days to saturation). Follow the guided conversation to see capacity management in action.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('compliance') || lowerQ.includes('pci') || lowerQ.includes('sox') || lowerQ.includes('config') || lowerQ.includes('drift')) {
-                    return {
-                        text: "I run compliance scans for PCI, SOX, and configuration drift. In this demo, we discover 12 PCI violations, 4 SOX issues, and 22 switches off standard. Continue the conversation to see automated remediation task creation.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('issue') || lowerQ.includes('problem') || lowerQ.includes('outage') || lowerQ.includes('down') || lowerQ.includes('error')) {
-                    return {
-                        text: "When I detect issues, I can automatically file TAC cases with full diagnostics. In this demo, I detect a Nexus 9K spine switch with high CoPP drops and elevated CPU (68%), then file TAC case #625847392 with severity 2 (critical). Complete with real-time telemetry stream and <2 hour response SLA. Continue the conversation to see this workflow.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As a Network Ops assistant, I help with PSIRTs, capacity planning, compliance scanning, ACI operations, TAC case filing, and change management. Use the suggestion buttons above to explore these workflows, or ask about a specific area like security, capacity, or TAC support.",
-                    showInfo: true
-                };
-            }
-
-            if (currentPersona === "Security Ops (SOC)") {
-                if (lowerQ.includes('threat') || lowerQ.includes('attack') || lowerQ.includes('malware') || lowerQ.includes('incident')) {
-                    return {
-                        text: "I monitor active threats across SecureX, Firepower, Umbrella, and ISE. In this demo, we investigate lateral movement (10.45.22.18), analyze phishing campaigns, and hunt for reconnaissance activity from Tor exit nodes. Follow the guided flow to see incident response in action.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('cve') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
-                    return {
-                        text: "I track CVEs mapped to your assets and prioritize remediation. This demo covers 3 critical CVEs (Catalyst 9K, ASA auth bypass, FMC) with risk-based patching plans. Continue the conversation to see vulnerability management workflows.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('compliance') || lowerQ.includes('soc2') || lowerQ.includes('audit')) {
-                    return {
-                        text: "I monitor security compliance for SOC2, PCI, and custom frameworks. In this demo, we're at 96% SOC2 compliance with 4% gaps in logging, MFA, and access reviews. Follow the flow to see remediation planning.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As a Security Ops assistant, I help with threat detection, incident response, vulnerability management, threat hunting, and compliance. Use the buttons to explore threat investigations, CVE remediation, or compliance workflows.",
-                    showInfo: true
-                };
-            }
-
-            if (currentPersona === "Procurement / Asset Mgmt") {
-                if (lowerQ.includes('contract') || lowerQ.includes('renewal') || lowerQ.includes('expir')) {
-                    return {
-                        text: "I track all contract renewals and expirations. In this demo, we have 8 contracts expiring in 30 days ($2.4M) and 23 in 90 days ($8.7M). We optimize a SmartNet renewal with 5-year co-terming for $265K savings. Follow the guided conversation to see contract management.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('license') || lowerQ.includes('true-up') || lowerQ.includes('reclaim')) {
-                    return {
-                        text: "I identify license optimization opportunities across your entire portfolio. In this demo, we reclaim $433K/year through Umbrella, DNA, Webex, and Duo license rightsizing. Continue the flow to see automated license adjustment via Smart Licensing.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('eol') || lowerQ.includes('eos') || lowerQ.includes('refresh') || lowerQ.includes('end of life')) {
-                    return {
-                        text: "I track all EOL/EOS devices and create phased refresh roadmaps. This demo shows 67 EOL devices requiring $1.8M refresh across 4 quarters (ASA, Nexus, Catalyst, UCS). Follow the conversation to see budget planning.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('cost') || lowerQ.includes('saving') || lowerQ.includes('ela') || lowerQ.includes('negotiat')) {
-                    return {
-                        text: "I analyze spend and identify renegotiation opportunities. In this demo, we optimize a $30.2M Cisco ELA down to $26.8M (11% reduction) through consumption-based pricing and 3-year commitment. Continue to see ELA optimization.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As a Procurement assistant, I help with contract renewals, license optimization, EOL/EOS tracking, spend analysis, and vendor negotiations. Use the buttons to explore contract management, license reclamation, or refresh planning.",
-                    showInfo: true
-                };
-            }
-
-            if (currentPersona === "Executive Overview") {
-                if (lowerQ.includes('kpi') || lowerQ.includes('metric') || lowerQ.includes('performance')) {
-                    return {
-                        text: "I track key performance indicators across your entire Cisco estate. In this demo: Availability 99.94%, Security Score 87/100, MTTR 4.2h, and 47 incidents (down 12%). Follow the guided flow to see detailed KPI analysis and improvement plans.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('risk') || lowerQ.includes('exposure')) {
-                    return {
-                        text: "I provide enterprise risk visibility with mitigation tracking. This demo covers Top 5 risks: Security (CVEs), Compliance (SOC2), Capacity (WAN saturation), Financial (license waste), and EOL devices. Continue to see risk deep-dives and remediation.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('financial') || lowerQ.includes('cost') || lowerQ.includes('roi') || lowerQ.includes('saving')) {
-                    return {
-                        text: "I provide financial optimization analysis across your $47.2M IT spend. In this demo, we identify $4.1M/year in savings through license reclamation, ELA renegotiation, and operational improvements. Follow the flow to see board-ready financial summaries.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('strateg') || lowerQ.includes('roadmap') || lowerQ.includes('2025') || lowerQ.includes('planning')) {
-                    return {
-                        text: "I help with strategic planning and roadmap development. This demo shows 2025 priorities: Zero Trust (95% maturity), AI/Automation (40% MTTR reduction), Cloud Migration, and Sustainability. Continue to see strategic investment planning.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As an Executive assistant, I provide KPI dashboards, risk management, financial optimization, strategic planning, and board-ready reporting. Use the buttons to explore performance metrics, risk analysis, or 2025 strategy.",
-                    showInfo: true
-                };
-            }
-
-            // Generic fallback
             return {
-                text: `That's an interesting question for the ${currentPersona} persona! This is a guided demo showcasing specific workflows. I'd recommend using the suggestion buttons to explore the capabilities step-by-step, or ask about specific topics relevant to your role.`,
-                showInfo: true
+                text: `I can pull live data on <strong>vulnerabilities</strong>, <strong>assets</strong>, <strong>security posture</strong>, <strong>TAC cases</strong>, <strong>config assessments</strong>, and <strong>contract renewals</strong>. Try asking about any of those, or say <em>"what needs my attention"</em> for a full priorities digest.`,
+                showInfo: false
             };
         }
 
@@ -1795,85 +1871,10 @@
         }
 
         function handleAttentionClick(query) {
-            // Show user message in chat
-            addMessage('user', query);
-
-            // Generate detailed response from ciscoIQData
-            setTimeout(() => {
-                const typing = showTypingIndicator();
-                setTimeout(() => {
-                    typing.remove();
-                    const response = generateAttentionResponse(query);
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message assistant';
-                    messageDiv.innerHTML = `
-                        <div class="message-header">
-                            <div class="avatar">C</div>
-                            <div class="role-label">Cisco AI Assistant</div>
-                            <div class="message-time">${getCurrentTime()}</div>
-                        </div>
-                        <div class="message-bubble">${response}</div>
-                    `;
-                    chatContainer.appendChild(messageDiv);
-                    scrollToBottom();
-                }, 1200);
-            }, 600);
-        }
-
-        function generateAttentionResponse(query) {
-            const q = query.toLowerCase();
-
-            if (q.includes('cve-')) {
-                const cveMatch = query.match(/CVE-[\d-]+/i);
-                const cve = cveMatch && ciscoIQData.vulnerabilities.find(v => v.cveId.toLowerCase() === cveMatch[0].toLowerCase());
-                if (cve) {
-                    return `<strong>${cve.cveId}</strong> — ${cve.severity} Severity<br><br>` +
-                        `<strong>Affected devices (${cve.affectedDevices.length}):</strong> ${cve.affectedDevices.join(', ')}<br>` +
-                        `<strong>Days open:</strong> ${cve.daysOpen}<br>` +
-                        `<strong>Recommended fix:</strong> ${cve.recommendedFix}<br><br>` +
-                        `I can draft a remediation change plan, stage a pilot deployment, or export this to ServiceNow. What would you like to do?`;
-                }
-            }
-
-            if (q.includes('misconfiguration') || q.includes('misconfig')) {
-                const device = ciscoIQData.assessments.misconfigurations.find(m => q.includes(m.deviceName.toLowerCase()));
-                if (device) {
-                    return `<strong>Configuration Issue — ${device.deviceName}</strong><br><br>` +
-                        `<strong>Risk level:</strong> ${device.riskLevel}<br>` +
-                        `<strong>Finding:</strong> ${device.issue}<br>` +
-                        `<strong>Assessment date:</strong> ${ciscoIQData.assessments.lastAssessmentDate}<br>` +
-                        `<strong>Total config drift:</strong> ${ciscoIQData.assessments.configDriftCount} devices drifted from golden config<br><br>` +
-                        `I can push a remediation config, open a ServiceNow change request, or schedule a maintenance window. How would you like to proceed?`;
-                }
-            }
-
-            if (q.includes('sr-') || q.includes('tac case')) {
-                const srMatch = query.match(/SR-\d+/i);
-                const sr = srMatch && ciscoIQData.supportCases.find(c => c.caseNumber === srMatch[0]);
-                if (sr) {
-                    return `<strong>TAC Case ${sr.caseNumber}</strong> — ${sr.severity}<br><br>` +
-                        `<strong>Title:</strong> ${sr.title}<br>` +
-                        `<strong>Status:</strong> ${sr.status}<br>` +
-                        `<strong>Days open:</strong> ${sr.daysOpen}<br>` +
-                        `<strong>Assigned engineer:</strong> ${sr.assignedEngineer}<br><br>` +
-                        `I can escalate this case, request a callback from the assigned engineer, or attach additional diagnostics. What would you like?`;
-                }
-            }
-
-            if (q.includes('con-') || q.includes('contract') || q.includes('expiring')) {
-                const conMatch = query.match(/CON-[\w-]+/i);
-                const con = conMatch && ciscoIQData.renewals.find(r => r.contractId === conMatch[0]);
-                if (con) {
-                    const daysLeft = Math.ceil((new Date(con.expiryDate) - new Date()) / 86400000);
-                    return `<strong>Contract ${con.contractId}</strong><br><br>` +
-                        `<strong>Product:</strong> ${con.productName}<br>` +
-                        `<strong>Expiry date:</strong> ${con.expiryDate} (${daysLeft} days remaining)<br>` +
-                        `<strong>Annual value:</strong> $${con.annualValue.toLocaleString()}<br><br>` +
-                        `I can generate a renewal quote with 1/3/5-year co-term options, route to Procurement for approval, or schedule a review with your Cisco account team. What's your preference?`;
-                }
-            }
-
-            return generateSmartResponse(query).text;
+            // Pipe through the normal chat flow so the unified router handles it
+            const input = document.getElementById('messageInput');
+            input.value = query;
+            sendCustomMessage();
         }
 
         function initChat() {
