@@ -555,6 +555,41 @@
             color: #EF4444;
         }
 
+        /* ─── Persona Tab Bar ─── */
+        .persona-tabs {
+            display: flex;
+            gap: 0;
+            background: rgba(15, 15, 25, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .persona-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .persona-tab:hover {
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .persona-tab.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+
         /* ─── Proactive Insight Panel ─── */
         .attention-panel {
             background: linear-gradient(135deg, rgba(20, 20, 35, 0.95) 0%, rgba(15, 15, 28, 0.98) 100%);
@@ -707,6 +742,16 @@
                 bottom: -20px;
             }
 
+            .persona-tabs {
+                padding: 0 16px;
+                overflow-x: auto;
+            }
+
+            .persona-tab {
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
             .attention-cards {
                 grid-template-columns: 1fr 1fr;
             }
@@ -743,6 +788,13 @@
                 </div>
             </div>
         </div>
+        <!-- Persona Tab Bar -->
+        <div class="persona-tabs" id="personaTabs">
+            <button class="persona-tab active" data-persona="engineer" onclick="switchViewPersona('engineer')">🛠 Network Engineer</button>
+            <button class="persona-tab" data-persona="director" onclick="switchViewPersona('director')">📊 IT Director</button>
+            <button class="persona-tab" data-persona="partner" onclick="switchViewPersona('partner')">🤝 Partner / CSM</button>
+        </div>
+
         <!-- Proactive Insight Panel -->
         <div class="attention-panel" id="attentionPanel">
             <div class="attention-panel-header">
@@ -846,6 +898,34 @@
                 { contractId: "CON-SAU-WF-2024-0118", productName: "Cisco ThousandEyes — Enterprise Agent (85 agents)", expiryDate: "2026-04-07", annualValue: 178500 }
             ]
         };
+
+        // ─── View Persona State ─────────────────────────────────────────
+        let activeViewPersona = 'engineer';
+
+        const viewPersonaConfig = {
+            engineer: {
+                greeting: "Good morning. I've scanned 12 devices across your environment. You have 3 critical CVEs, including one open 127 days. Want me to walk you through remediation priorities?",
+                suggestions: ["Show me the CVEs", "Check device health", "What needs my attention"],
+                mappedPersona: "Network Ops (Global)"
+            },
+            director: {
+                greeting: "Good morning. Your security posture is 67/100. You have $2.24M in contracts expiring in 90 days and one S2 case approaching SLA breach. Want an executive summary?",
+                suggestions: ["Executive summary", "Show contract risk", "Review security posture"],
+                mappedPersona: "Executive Overview"
+            },
+            partner: {
+                greeting: "Good morning. Wells Fargo has 3 critical vulnerabilities and an S2 case escalated to BU. Two renewal opportunities total $876K. Want to review customer health?",
+                suggestions: ["Review customer health", "Show renewal opportunities", "Check open escalations"],
+                mappedPersona: "Procurement / Asset Mgmt"
+            }
+        };
+
+        // Returns the appropriate string for the active view persona
+        function _tone(eng, dir, csm) {
+            if (activeViewPersona === 'director') return dir;
+            if (activeViewPersona === 'partner') return csm;
+            return eng;
+        }
 
         let currentPersona = null;
         let personaConversations = {};
@@ -1518,9 +1598,10 @@
 
         function resetChat() {
             currentStep = 0;
-            currentPersona = null;
-            conversation = [];
+            currentPersona = viewPersonaConfig[activeViewPersona].mappedPersona;
+            conversation = personaConversations[currentPersona] || [];
             chatContainer.innerHTML = '';
+            initAttentionPanel();
             initChat();
         }
 
@@ -1529,50 +1610,105 @@
         function _fmtDollars(v) { return v >= 1000000 ? `$${(v/1000000).toFixed(1)}M` : `$${(v/1000).toFixed(0)}K`; }
         function _daysUntil(dateStr) { return Math.ceil((new Date(dateStr) - new Date()) / 86400000); }
 
-        // ── Single-item detail builders ──────────────────────────────────
+        // ── Single-item detail builders (tone-aware) ─────────────────────
         function _cveDetail(cve) {
-            return `<strong>${cve.cveId}</strong> is a ${cve.severity}-severity advisory affecting ${cve.affectedDevices.length} device${cve.affectedDevices.length > 1 ? 's' : ''}, open for ${cve.daysOpen} days.<br><br>` +
+            const n = cve.affectedDevices.length;
+            const opening = _tone(
+                `<strong>${cve.cveId}</strong> is a ${cve.severity}-severity advisory affecting ${n} device${n > 1 ? 's' : ''}, open for ${cve.daysOpen} days.`,
+                `<strong>${cve.cveId}</strong> (${cve.severity}) is creating unpatched exposure on ${n} production device${n > 1 ? 's' : ''}. It's been open ${cve.daysOpen} days — risk is growing.`,
+                `<strong>${cve.cveId}</strong> (${cve.severity}) is impacting ${n} device${n > 1 ? 's' : ''} in the Wells Fargo environment. Open ${cve.daysOpen} days — this is a proactive remediation opportunity.`
+            );
+            const action = _tone(
+                `I'd recommend staging a remediation pilot starting with the lowest-risk device. Want me to draft a change plan or export to ServiceNow?`,
+                `Leaving this unpatched creates audit exposure and potential operational disruption. Want me to prepare a risk brief with remediation timeline for leadership?`,
+                `Helping the customer close this quickly strengthens the relationship. Want me to draft a remediation proposal or schedule a CX review?`
+            );
+            return `${opening}<br><br>` +
                 `• <strong>Devices:</strong> ${cve.affectedDevices.join(', ')}<br>` +
                 `• <strong>Recommended fix:</strong> ${cve.recommendedFix}<br><br>` +
-                `I'd recommend staging a remediation pilot starting with the lowest-risk device. Want me to draft a change plan or export to ServiceNow?`;
+                action;
         }
 
         function _caseDetail(sr) {
-            return `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days — currently <em>${sr.status}</em>.<br><br>` +
+            const opening = _tone(
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days — currently <em>${sr.status}</em>.`,
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is approaching SLA risk for your operations team.' : ''}`,
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) is open ${sr.daysOpen} days for Wells Fargo. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is a customer satisfaction risk — consider a proactive check-in.' : ''}`
+            );
+            const action = _tone(
+                (sr.daysOpen >= 14 ? `This case is aging — consider requesting a management escalation or callback. ` : ``) + `Want me to escalate, request a callback, or attach additional diagnostics?`,
+                `Want me to prepare an impact summary for leadership or request a management escalation?`,
+                `Want me to coordinate with the TAC engineer, or prepare a status update for the customer?`
+            );
+            return `${opening}<br><br>` +
                 `• <strong>Issue:</strong> ${sr.title}<br>` +
                 `• <strong>Engineer:</strong> ${sr.assignedEngineer}<br><br>` +
-                (sr.daysOpen >= 14 ? `This case is aging — consider requesting a management escalation or callback. ` : ``) +
-                `Want me to escalate, request a callback, or attach additional diagnostics?`;
+                action;
         }
 
         function _renewalDetail(con) {
             const d = _daysUntil(con.expiryDate);
-            return `<strong>${con.contractId}</strong> covers ${con.productName} and expires <strong>${con.expiryDate}</strong> (${d} days remaining).<br><br>` +
+            const opening = _tone(
+                `<strong>${con.contractId}</strong> covers ${con.productName} and expires <strong>${con.expiryDate}</strong> (${d} days remaining).`,
+                `<strong>${con.contractId}</strong> — ${_fmtDollars(con.annualValue)}/yr — expires <strong>${con.expiryDate}</strong> (${d} days). ${d <= 45 ? 'This needs budget authorization soon to avoid a coverage lapse.' : ''}`,
+                `<strong>${con.contractId}</strong> is a <strong>${_fmtDollars(con.annualValue)}/yr</strong> renewal opportunity expiring ${con.expiryDate} (${d} days). ${d <= 45 ? 'Proactive outreach now maximizes close rate.' : ''}`
+            );
+            const action = _tone(
+                (d <= 45 ? `This is getting tight — I'd recommend generating a renewal quote now. ` : ``) + `Want me to prepare 1/3/5-year co-term options, or route directly to Procurement?`,
+                `Want me to model renewal scenarios for budget planning, or route directly for approval?`,
+                `Want me to prepare a renewal proposal with co-term savings, or schedule a customer review meeting?`
+            );
+            return `${opening}<br><br>` +
+                `• <strong>Product:</strong> ${con.productName}<br>` +
                 `• <strong>Annual value:</strong> ${_fmtDollars(con.annualValue)}<br><br>` +
-                (d <= 45 ? `This is getting tight — I'd recommend generating a renewal quote now. ` : ``) +
-                `Want me to prepare 1/3/5-year co-term options, or route directly to Procurement?`;
+                action;
         }
 
         function _misconfigDetail(m) {
-            return `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk finding from the ${ciscoIQData.assessments.lastAssessmentDate} assessment.<br><br>` +
+            const opening = _tone(
+                `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk finding from the ${ciscoIQData.assessments.lastAssessmentDate} assessment.`,
+                `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk misconfiguration that could create compliance exposure. Detected ${ciscoIQData.assessments.lastAssessmentDate}.`,
+                `Assessment on ${ciscoIQData.assessments.lastAssessmentDate} flagged a <strong>${m.riskLevel}</strong>-risk issue on <strong>${m.deviceName}</strong> in the Wells Fargo environment.`
+            );
+            const action = _tone(
+                `Want me to push a remediation config, open a change request, or schedule a maintenance window?`,
+                `Want me to quantify the risk exposure and prepare a remediation brief for the team?`,
+                `This is a good touchpoint for a config review engagement. Want me to draft a CX proposal?`
+            );
+            return `${opening}<br><br>` +
                 `• <strong>Issue:</strong> ${m.issue}<br>` +
                 `• <strong>Estate-wide drift:</strong> ${ciscoIQData.assessments.configDriftCount} devices off golden config<br><br>` +
-                `Want me to push a remediation config, open a change request, or schedule a maintenance window?`;
+                action;
         }
 
-        // ── Category-level builders ──────────────────────────────────────
+        // ── Category-level builders (tone-aware) ─────────────────────────
         function _vulnCategory() {
             const v = ciscoIQData.vulnerabilities;
             const bySev = { Critical: 0, High: 0, Medium: 0 };
             v.forEach(c => bySev[c.severity] = (bySev[c.severity] || 0) + 1);
             const sorted = [...v].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen));
             const top5 = sorted.slice(0, 5);
+            const totalDevices = new Set(v.flatMap(c => c.affectedDevices)).size;
 
-            let html = `You have <strong>${v.length} open CVEs</strong> — ${bySev.Critical} critical, ${bySev.High} high, ${bySev.Medium} medium — mapped to your device inventory.<br><br>`;
+            let html = _tone(
+                `You have <strong>${v.length} open CVEs</strong> — ${bySev.Critical} critical, ${bySev.High} high, ${bySev.Medium} medium — mapped to your device inventory.`,
+                `<strong>${bySev.Critical} critical vulnerabilities</strong> are creating unpatched exposure across ${totalDevices} production devices. Total open advisories: ${v.length}.`,
+                `Wells Fargo has <strong>${v.length} open CVEs</strong> (${bySev.Critical} critical) affecting ${totalDevices} devices. This is a remediation services opportunity.`
+            ) + `<br><br>`;
+
             top5.forEach(c => {
-                html += `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.length} device${c.affectedDevices.length > 1 ? 's' : ''}, open ${c.daysOpen}d. Fix: ${c.recommendedFix.split(';')[0]}.<br>`;
+                html += _tone(
+                    `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.join(', ')}, open ${c.daysOpen}d. Fix: ${c.recommendedFix.split(';')[0]}.<br>`,
+                    `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.length} devices at risk, open ${c.daysOpen}d. Operational impact if exploited.<br>`,
+                    `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.length} devices, open ${c.daysOpen}d. Remediation engagement potential.<br>`
+                );
             });
-            html += `<br>I'd start with ${sorted[0].cveId} — it's been open the longest at ${sorted[0].daysOpen} days. Want me to draft a remediation plan or stage a pilot?`;
+
+            html += '<br>' + _tone(
+                `I'd start with ${sorted[0].cveId} — it's been open the longest at ${sorted[0].daysOpen} days. Want me to draft a remediation plan or stage a pilot?`,
+                `${sorted[0].cveId} has been open ${sorted[0].daysOpen} days — longest exposure window. Want me to prepare a risk brief for leadership?`,
+                `${sorted[0].cveId} (${sorted[0].daysOpen} days open) is the top remediation priority. Want me to draft a services proposal for the customer?`
+            );
             return html;
         }
 
@@ -1580,13 +1716,23 @@
             const sec = ciscoIQData.security;
             const anomalies = [...sec.recentAnomalies].sort((a, b) => _sevRank[a.severity] - _sevRank[b.severity]);
 
-            let html = `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong>, with ${anomalies.length} recent anomalies and compliance gaps in both PCI-DSS and SOX.<br><br>`;
+            let html = _tone(
+                `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong>, with ${anomalies.length} recent anomalies and compliance gaps in both PCI-DSS and SOX.`,
+                `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong> — below the 75-point target. Compliance gaps in PCI-DSS and SOX create audit exposure.`,
+                `Wells Fargo security posture: <strong>${sec.postureScore}/${sec.postureMax}</strong>. Compliance gaps present an opportunity for security assessment services.`
+            ) + `<br><br>`;
+
             anomalies.forEach(a => {
                 html += `• <strong>${a.severity}:</strong> ${a.description} <span style="opacity:.5">(${a.detectedDate})</span><br>`;
             });
             html += `• <strong>PCI-DSS:</strong> ${sec.compliance.pciDss.status} — ${sec.compliance.pciDss.findings} findings. ${sec.compliance.pciDss.details}<br>`;
             html += `• <strong>SOX:</strong> ${sec.compliance.sox.status} — ${sec.compliance.sox.findings} findings. ${sec.compliance.sox.details}<br>`;
-            html += `<br>The ${anomalies[0].severity.toLowerCase()}-severity anomaly from ${anomalies[0].detectedDate} is the top priority. Want me to investigate further or open a remediation task?`;
+
+            html += '<br>' + _tone(
+                `The ${anomalies[0].severity.toLowerCase()}-severity anomaly from ${anomalies[0].detectedDate} is the top priority. Want me to investigate further or open a remediation task?`,
+                `The compliance gaps are the most business-critical items here. Want me to prepare an audit-readiness brief?`,
+                `Compliance gaps and the posture score are good conversation starters. Want me to prepare a security health review for the customer?`
+            );
             return html;
         }
 
@@ -1596,16 +1742,27 @@
             const eol = a.filter(d => d.lifecycleStatus === 'End of Life');
             const eos = a.filter(d => d.lifecycleStatus === 'End of Sale');
             const avgHealth = Math.round(a.reduce((s, d) => s + d.healthScore, 0) / a.length);
+            const dcs = [...new Set(a.map(d => d.datacenter))].length;
 
-            let html = `You have <strong>${a.length} monitored devices</strong> across ${[...new Set(a.map(d => d.datacenter))].length} datacenters — average health ${avgHealth}/100, with ${eol.length} End of Life and ${eos.length} End of Sale.<br><br>`;
+            let html = _tone(
+                `You have <strong>${a.length} monitored devices</strong> across ${dcs} datacenters — average health ${avgHealth}/100, with ${eol.length} End of Life and ${eos.length} End of Sale.`,
+                `<strong>${a.length} devices</strong> across ${dcs} datacenters. Average health ${avgHealth}/100. <strong>${eol.length} EOL devices</strong> are no longer receiving security patches — operational risk.`,
+                `Wells Fargo has <strong>${a.length} devices</strong> across ${dcs} datacenters (avg health ${avgHealth}/100). <strong>${eol.length} EOL</strong> and ${eos.length} EOS devices present refresh opportunity.`
+            ) + `<br><br>`;
+
             sorted.slice(0, 5).forEach(d => {
                 const flag = d.lifecycleStatus === 'End of Life' ? ' ⚠️ EOL' : d.lifecycleStatus === 'End of Sale' ? ' ⚠️ EOS' : '';
                 html += `• <strong>${d.name}</strong> (${d.model}, ${d.datacenter}) — Health ${d.healthScore}${flag}<br>`;
             });
+
             if (eol.length > 0) {
-                html += `<br>The ${eol.length} EOL device${eol.length > 1 ? 's' : ''} (${eol.map(d => d.name).join(', ')}) no longer receive${eol.length === 1 ? 's' : ''} security patches. Want me to build a refresh plan or check contract coverage?`;
+                html += '<br>' + _tone(
+                    `The ${eol.length} EOL device${eol.length > 1 ? 's' : ''} (${eol.map(d => d.name).join(', ')}) no longer receive${eol.length === 1 ? 's' : ''} security patches. Want me to build a refresh plan or check contract coverage?`,
+                    `The ${eol.length} EOL devices create security and compliance exposure. Want me to model refresh costs and timeline for budget planning?`,
+                    `${eol.length} EOL devices are a hardware refresh opportunity. Want me to prepare a refresh proposal with migration options?`
+                );
             } else {
-                html += `<br>No EOL devices — your estate is in good shape. Want a detailed health breakdown by datacenter?`;
+                html += `<br>No EOL devices — estate is in good shape. Want a detailed health breakdown by datacenter?`;
             }
             return html;
         }
@@ -1614,11 +1771,21 @@
             const asmts = ciscoIQData.assessments;
             const sorted = [...asmts.misconfigurations].sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel]);
 
-            let html = `Last assessment <strong>(${asmts.lastAssessmentDate})</strong> found ${sorted.length} misconfigurations, with ${asmts.configDriftCount} devices drifted from golden config.<br><br>`;
+            let html = _tone(
+                `Last assessment <strong>(${asmts.lastAssessmentDate})</strong> found ${sorted.length} misconfigurations, with ${asmts.configDriftCount} devices drifted from golden config.`,
+                `Assessment from <strong>${asmts.lastAssessmentDate}</strong>: ${sorted.length} misconfigurations found, ${asmts.configDriftCount} devices off golden config. This creates compliance and operational risk.`,
+                `Wells Fargo assessment (${asmts.lastAssessmentDate}): ${sorted.length} misconfigurations, ${asmts.configDriftCount} config drift. Remediation engagement opportunity.`
+            ) + `<br><br>`;
+
             sorted.slice(0, 5).forEach(m => {
                 html += `• <strong>${m.deviceName}</strong> — ${m.riskLevel}: ${m.issue}<br>`;
             });
-            html += `<br>The ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} is the most urgent. Want me to push a fix, open a change request, or run a fresh assessment?`;
+
+            html += '<br>' + _tone(
+                `The ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} is the most urgent. Want me to push a fix, open a change request, or run a fresh assessment?`,
+                `The ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} should be remediated before the next audit window. Want me to prepare a remediation timeline?`,
+                `Start with the ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} for quick customer value. Want me to draft a config optimization proposal?`
+            );
             return html;
         }
 
@@ -1628,15 +1795,27 @@
             const sorted = [...cases].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen));
             const aging = s1s2.filter(c => c.daysOpen >= 14);
 
-            let html = `You have <strong>${cases.length} open TAC cases</strong> — ${s1s2.length} at S1/S2 severity.`;
-            if (aging.length > 0) html += ` <strong>${aging.length}</strong> ha${aging.length > 1 ? 've' : 's'} been open over 2 weeks.`;
+            let html = _tone(
+                `You have <strong>${cases.length} open TAC cases</strong> — ${s1s2.length} at S1/S2 severity.`,
+                `<strong>${cases.length} open TAC cases</strong>, ${s1s2.length} at critical severity. ${aging.length > 0 ? `${aging.length} case${aging.length > 1 ? 's' : ''} aging beyond SLA — operational risk.` : ''}`,
+                `Wells Fargo has <strong>${cases.length} open TAC cases</strong> (${s1s2.length} S1/S2). ${aging.length > 0 ? `${aging.length} aging beyond 2 weeks — customer satisfaction risk.` : ''}`
+            );
+            if (activeViewPersona === 'engineer' && aging.length > 0) {
+                html += ` <strong>${aging.length}</strong> ha${aging.length > 1 ? 've' : 's'} been open over 2 weeks.`;
+            }
             html += `<br><br>`;
+
             sorted.slice(0, 5).forEach(c => {
                 const flag = (c.severity === 'S1' || c.severity === 'S2') && c.daysOpen >= 14 ? ' ⚠️' : '';
                 html += `• <strong>${c.caseNumber}</strong> (${c.severity}) — ${c.title.substring(0, 65)}${c.title.length > 65 ? '…' : ''}, ${c.daysOpen}d, <em>${c.status}</em>${flag}<br>`;
             });
+
             const worst = sorted[0];
-            html += `<br>${worst.caseNumber} is the highest priority. Want me to escalate, request a callback from ${worst.assignedEngineer}, or attach diagnostics?`;
+            html += '<br>' + _tone(
+                `${worst.caseNumber} is the highest priority. Want me to escalate, request a callback from ${worst.assignedEngineer}, or attach diagnostics?`,
+                `${worst.caseNumber} poses the highest operational risk. Want me to prepare an escalation brief or impact assessment?`,
+                `${worst.caseNumber} is the top customer concern. Want me to coordinate an escalation or prepare a proactive status update?`
+            );
             return html;
         }
 
@@ -1646,13 +1825,23 @@
             const totalValue = r.reduce((s, c) => s + c.annualValue, 0);
             const soonest = _daysUntil(sorted[0].expiryDate);
 
-            let html = `<strong>${r.length} contracts</strong> are approaching renewal — combined annual value ${_fmtDollars(totalValue)}. The soonest expires in ${soonest} days.<br><br>`;
+            let html = _tone(
+                `<strong>${r.length} contracts</strong> approaching renewal — combined annual value ${_fmtDollars(totalValue)}. Soonest expires in ${soonest} days.`,
+                `<strong>${_fmtDollars(totalValue)}</strong> in annual contract value approaching renewal. ${r.length} contracts, soonest in ${soonest} days. Budget authorization needed.`,
+                `<strong>${_fmtDollars(totalValue)}</strong> in renewal opportunity across ${r.length} contracts. Soonest expires in ${soonest} days — proactive engagement recommended.`
+            ) + `<br><br>`;
+
             sorted.forEach(c => {
                 const d = _daysUntil(c.expiryDate);
                 const label = c.productName.length > 55 ? c.productName.substring(0, 55) + '…' : c.productName;
                 html += `• <strong>${c.contractId}</strong> — ${label}, expires ${c.expiryDate} (${d}d), ${_fmtDollars(c.annualValue)}/yr<br>`;
             });
-            html += `<br>The ${sorted[0].contractId.split('-').slice(-1)[0]} contract is the most time-sensitive. Want me to generate renewal quotes with co-term options or route to Procurement?`;
+
+            html += '<br>' + _tone(
+                `The ${sorted[0].contractId.split('-').slice(-1)[0]} contract is the most time-sensitive. Want me to generate renewal quotes with co-term options or route to Procurement?`,
+                `The ${sorted[0].contractId.split('-').slice(-1)[0]} contract needs immediate attention. Want me to model 1/3/5-year options with budget impact?`,
+                `${sorted[0].contractId.split('-').slice(-1)[0]} is the most time-sensitive deal. Want me to prepare a renewal proposal with co-term savings analysis?`
+            );
             return html;
         }
 
@@ -1663,14 +1852,45 @@
             const topRenewal = [...ciscoIQData.renewals].sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
             const sec = ciscoIQData.security;
             const critAnomaly = [...sec.recentAnomalies].sort((a, b) => _sevRank[a.severity] - _sevRank[b.severity])[0];
+            const totalRenewalValue = ciscoIQData.renewals.reduce((s, c) => s + c.annualValue, 0);
 
-            let html = `Here's your cross-domain priority digest — items that need attention right now.<br><br>`;
-            html += `🔴 <strong>Vulnerabilities:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs open, longest is ${topVuln.cveId} (${topVuln.daysOpen} days, ${topVuln.affectedDevices.length} devices). Remediation overdue.<br>`;
-            html += `🟡 <strong>Config Risk:</strong> ${topMisconfig.riskLevel} misconfiguration on ${topMisconfig.deviceName} — ${topMisconfig.issue.toLowerCase()}<br>`;
-            html += `🔵 <strong>Support:</strong> TAC case ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — <em>${topCase.status}</em>.<br>`;
-            html += `🟣 <strong>Contracts:</strong> ${topRenewal.contractId} (${_fmtDollars(topRenewal.annualValue)}/yr) expires in ${_daysUntil(topRenewal.expiryDate)} days — renewal not yet initiated.<br>`;
-            html += `⚠️ <strong>Security Posture:</strong> Score ${sec.postureScore}/${sec.postureMax}. ${critAnomaly.description.split(' on ')[0]} detected ${critAnomaly.detectedDate}.<br>`;
-            html += `<br>I'd start with the config fix on ${topMisconfig.deviceName} (quick win, high risk) and the contract renewal (time-sensitive). Want me to take action on any of these?`;
+            let html = _tone(
+                `Here's your cross-domain priority digest — items that need attention right now.`,
+                `Here's your executive summary — key risks and actions across the Cisco estate.`,
+                `Here's the Wells Fargo customer health summary — key risks and partner action items.`
+            ) + `<br><br>`;
+
+            html += _tone(
+                `🔴 <strong>Vulnerabilities:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs open, longest is ${topVuln.cveId} (${topVuln.daysOpen} days, ${topVuln.affectedDevices.length} devices). Remediation overdue.<br>`,
+                `🔴 <strong>Security Risk:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs unpatched across production. Posture score ${sec.postureScore}/100. Audit exposure increasing.<br>`,
+                `🔴 <strong>Customer Risk:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs unpatched, posture ${sec.postureScore}/100. Proactive remediation strengthens relationship.<br>`
+            );
+            html += _tone(
+                `🟡 <strong>Config Risk:</strong> ${topMisconfig.riskLevel} misconfiguration on ${topMisconfig.deviceName} — ${topMisconfig.issue.toLowerCase()}<br>`,
+                `🟡 <strong>Compliance:</strong> PCI-DSS ${sec.compliance.pciDss.status} (${sec.compliance.pciDss.findings} findings), SOX ${sec.compliance.sox.status}. Audit window approaching.<br>`,
+                `🟡 <strong>Renewal Pipeline:</strong> ${_fmtDollars(totalRenewalValue)} across ${ciscoIQData.renewals.length} contracts. Soonest in ${_daysUntil(topRenewal.expiryDate)} days — outreach recommended.<br>`
+            );
+            html += _tone(
+                `🔵 <strong>Support:</strong> TAC case ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — <em>${topCase.status}</em>.<br>`,
+                `🔵 <strong>Operations:</strong> TAC case ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — SLA risk. <em>${topCase.status}</em>.<br>`,
+                `🔵 <strong>Escalations:</strong> ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — <em>${topCase.status}</em>. Customer satisfaction at risk.<br>`
+            );
+            html += _tone(
+                `🟣 <strong>Contracts:</strong> ${topRenewal.contractId} (${_fmtDollars(topRenewal.annualValue)}/yr) expires in ${_daysUntil(topRenewal.expiryDate)} days — renewal not yet initiated.<br>`,
+                `🟣 <strong>Financial:</strong> ${_fmtDollars(totalRenewalValue)}/yr in contract value at risk within 90 days. Budget authorization needed.<br>`,
+                `🟣 <strong>Growth:</strong> ${ciscoIQData.assets.filter(d => d.lifecycleStatus === 'End of Life').length} EOL devices = refresh opportunity. Combine with renewals for co-term savings.<br>`
+            );
+            html += _tone(
+                `⚠️ <strong>Security Posture:</strong> Score ${sec.postureScore}/${sec.postureMax}. ${critAnomaly.description.split(' on ')[0]} detected ${critAnomaly.detectedDate}.<br>`,
+                `⚠️ <strong>Posture Score:</strong> ${sec.postureScore}/${sec.postureMax} — below 75 target. Board reporting threshold breached.<br>`,
+                `⚠️ <strong>Health Score:</strong> Posture ${sec.postureScore}/${sec.postureMax}. Combined with open CVEs, recommend scheduling a Cisco CX health review.<br>`
+            );
+
+            html += '<br>' + _tone(
+                `I'd start with the config fix on ${topMisconfig.deviceName} (quick win, high risk) and the contract renewal (time-sensitive). Want me to take action on any of these?`,
+                `Top actions: authorize the ${topRenewal.contractId.split('-').slice(-1)[0]} renewal and schedule the compliance remediation. Want me to prepare a decision brief?`,
+                `Recommended partner actions: proactive renewal outreach on ${_fmtDollars(topRenewal.annualValue)} contract and a remediation services proposal. Want me to draft both?`
+            );
             return html;
         }
 
@@ -1719,28 +1939,25 @@
                 return { text: _assessmentCategory(), showInfo: false };
             }
 
-            if (q.includes('case') || q.includes('tac') || q.includes('support')) {
+            if (q.includes('case') || q.includes('tac') || q.includes('support') || q.includes('escalation')) {
                 return { text: _casesCategory(), showInfo: false };
             }
 
-            if (q.includes('renewal') || q.includes('contract') || q.includes('expir') || q.includes('license')) {
+            if (q.includes('renewal') || q.includes('contract') || q.includes('expir') || q.includes('license') || q.includes('renewal opportunit')) {
                 return { text: _renewalsCategory(), showInfo: false };
             }
 
-            if (q.includes('attention') || q.includes('priorit') || q.includes('summary') || q.includes('what needs') || q.includes('/priorities') || q.includes('overview') || q.includes('digest')) {
+            if (q.includes('attention') || q.includes('priorit') || q.includes('summary') || q.includes('what needs') || q.includes('/priorities') || q.includes('overview') || q.includes('digest') || q.includes('customer health') || q.includes('executive summary')) {
                 return { text: _prioritiesDigest(), showInfo: false };
             }
 
             // ── Generic fallback ────────────────────────────────────────────
-            if (!currentPersona) {
-                return {
-                    text: "Please select a persona first using the buttons above (Network Ops, Security Ops, Procurement, or Executive Overview) to start our conversation. You can also ask me about vulnerabilities, assets, cases, or contracts at any time.",
-                    showInfo: true
-                };
-            }
-
             return {
-                text: `I can pull live data on <strong>vulnerabilities</strong>, <strong>assets</strong>, <strong>security posture</strong>, <strong>TAC cases</strong>, <strong>config assessments</strong>, and <strong>contract renewals</strong>. Try asking about any of those, or say <em>"what needs my attention"</em> for a full priorities digest.`,
+                text: _tone(
+                    `I can pull live data on <strong>vulnerabilities</strong>, <strong>assets</strong>, <strong>security posture</strong>, <strong>TAC cases</strong>, <strong>config assessments</strong>, and <strong>contract renewals</strong>. Try asking about any of those, or say <em>"what needs my attention"</em> for a full priorities digest.`,
+                    `I can surface <strong>risk exposure</strong>, <strong>contract status</strong>, <strong>compliance gaps</strong>, <strong>operational issues</strong>, and <strong>financial impact</strong>. Try asking about any of those, or say <em>"executive summary"</em> for a full overview.`,
+                    `I can show <strong>customer health</strong>, <strong>renewal opportunities</strong>, <strong>open escalations</strong>, <strong>remediation gaps</strong>, and <strong>growth potential</strong>. Try asking about any of those, or say <em>"review customer health"</em> for a full summary.`
+                ),
                 showInfo: false
             };
         }
@@ -1808,57 +2025,84 @@
             const container = document.getElementById('attentionCards');
             if (!container) return;
 
-            const severityRank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-
-            // Card 1 — Highest-severity CVE (longest open as tiebreaker)
+            // Shared data lookups
             const topVuln = [...ciscoIQData.vulnerabilities]
-                .sort((a, b) => (severityRank[a.severity] - severityRank[b.severity]) || (b.daysOpen - a.daysOpen))[0];
-
-            // Card 2 — Highest-risk misconfiguration
+                .sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen))[0];
             const topMisconfig = [...ciscoIQData.assessments.misconfigurations]
-                .sort((a, b) => severityRank[a.riskLevel] - severityRank[b.riskLevel])[0];
-
-            // Card 3 — Oldest S1/S2 TAC case
-            const topCase = [...ciscoIQData.supportCases]
-                .filter(c => c.severity === 'S1' || c.severity === 'S2')
-                .sort((a, b) => b.daysOpen - a.daysOpen)[0];
-
-            // Card 4 — Soonest expiring contract
+                .sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel])[0];
+            const s1s2Cases = ciscoIQData.supportCases.filter(c => c.severity === 'S1' || c.severity === 'S2');
+            const topCase = [...s1s2Cases].sort((a, b) => b.daysOpen - a.daysOpen)[0];
             const topRenewal = [...ciscoIQData.renewals]
                 .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+            const sec = ciscoIQData.security;
+            const totalRenewalValue = ciscoIQData.renewals.reduce((s, c) => s + c.annualValue, 0);
+            const eolDevices = ciscoIQData.assets.filter(d => d.lifecycleStatus === 'End of Life');
+            const avgHealth = Math.round(ciscoIQData.assets.reduce((s, d) => s + d.healthScore, 0) / ciscoIQData.assets.length);
+            const critCVEs = ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length;
 
-            const daysUntilExpiry = Math.ceil((new Date(topRenewal.expiryDate) - new Date()) / 86400000);
+            let cards;
 
-            const cards = [
-                {
-                    cls: 'severity-critical',
-                    icon: '🔴',
-                    headline: topVuln.cveId,
-                    summary: `${topVuln.severity} · ${topVuln.affectedDevices.length} device${topVuln.affectedDevices.length > 1 ? 's' : ''} · open ${topVuln.daysOpen} days`,
-                    query: `Tell me more about vulnerability ${topVuln.cveId} and its remediation plan`
-                },
-                {
-                    cls: 'severity-misconfig',
-                    icon: '🟡',
-                    headline: topMisconfig.deviceName,
-                    summary: topMisconfig.issue,
-                    query: `Tell me more about the ${topMisconfig.riskLevel}-risk misconfiguration on ${topMisconfig.deviceName}`
-                },
-                {
-                    cls: 'severity-support',
-                    icon: '🔵',
-                    headline: topCase.caseNumber,
-                    summary: `${topCase.severity} · ${topCase.daysOpen} days · ${topCase.status}`,
-                    query: `Tell me more about TAC case ${topCase.caseNumber} and its current status`
-                },
-                {
-                    cls: 'severity-renewal',
-                    icon: '🟣',
-                    headline: 'Contract Expiring',
-                    summary: `${topRenewal.contractId} · $${(topRenewal.annualValue / 1000).toFixed(0)}K · ${daysUntilExpiry} days left`,
-                    query: `Tell me more about the expiring contract ${topRenewal.contractId} for ${topRenewal.productName}`
-                }
-            ];
+            if (activeViewPersona === 'engineer') {
+                // Technical focus: CVE severity + misconfiguration risk
+                cards = [
+                    { cls: 'severity-critical', icon: '🔴',
+                      headline: topVuln.cveId,
+                      summary: `${topVuln.severity} · ${topVuln.affectedDevices.length} devices · open ${topVuln.daysOpen}d`,
+                      query: `Tell me more about vulnerability ${topVuln.cveId} and its remediation plan` },
+                    { cls: 'severity-misconfig', icon: '🟡',
+                      headline: topMisconfig.deviceName,
+                      summary: topMisconfig.issue,
+                      query: `Tell me more about the ${topMisconfig.riskLevel}-risk misconfiguration on ${topMisconfig.deviceName}` },
+                    { cls: 'severity-support', icon: '🔵',
+                      headline: topCase.caseNumber,
+                      summary: `${topCase.severity} · ${topCase.daysOpen}d · ${topCase.status}`,
+                      query: `Tell me more about TAC case ${topCase.caseNumber} and its current status` },
+                    { cls: 'severity-renewal', icon: '🟣',
+                      headline: 'Contract Expiring',
+                      summary: `${topRenewal.contractId} · ${_fmtDollars(topRenewal.annualValue)} · ${_daysUntil(topRenewal.expiryDate)}d left`,
+                      query: `Tell me more about the expiring contract ${topRenewal.contractId} for ${topRenewal.productName}` }
+                ];
+            } else if (activeViewPersona === 'director') {
+                // Business focus: posture score + contract value at risk
+                cards = [
+                    { cls: 'severity-critical', icon: '🔴',
+                      headline: `Posture: ${sec.postureScore}/100`,
+                      summary: `Below 75 target · PCI-DSS ${sec.compliance.pciDss.status} · ${sec.compliance.pciDss.findings} findings`,
+                      query: `Show me our security posture and compliance status` },
+                    { cls: 'severity-misconfig', icon: '🟡',
+                      headline: `${_fmtDollars(totalRenewalValue)} At Risk`,
+                      summary: `${ciscoIQData.renewals.length} contracts · soonest in ${_daysUntil(topRenewal.expiryDate)}d`,
+                      query: `Show me the contracts and renewals coming up` },
+                    { cls: 'severity-support', icon: '🔵',
+                      headline: `${topCase.severity} Case Aging`,
+                      summary: `${topCase.caseNumber} · ${topCase.daysOpen}d without resolution · ${topCase.status}`,
+                      query: `Tell me more about TAC case ${topCase.caseNumber} and its current status` },
+                    { cls: 'severity-renewal', icon: '🟣',
+                      headline: 'Compliance Gap',
+                      summary: `PCI-DSS: ${sec.compliance.pciDss.findings} findings · SOX: ${sec.compliance.sox.findings} findings`,
+                      query: `Show me our security posture and compliance status` }
+                ];
+            } else {
+                // Relationship focus: customer health + renewal opportunity
+                cards = [
+                    { cls: 'severity-critical', icon: '🔴',
+                      headline: `Health: ${avgHealth}/100`,
+                      summary: `${critCVEs} critical CVEs · posture ${sec.postureScore}/100 · ${eolDevices.length} EOL devices`,
+                      query: `What needs my attention for this customer` },
+                    { cls: 'severity-misconfig', icon: '🟡',
+                      headline: `${_fmtDollars(totalRenewalValue)} Renewals`,
+                      summary: `${ciscoIQData.renewals.length} contracts · soonest in ${_daysUntil(topRenewal.expiryDate)}d`,
+                      query: `Show me the contracts and renewals coming up` },
+                    { cls: 'severity-support', icon: '🔵',
+                      headline: `${s1s2Cases.length} Escalations`,
+                      summary: `Longest: ${topCase.caseNumber} · ${topCase.daysOpen}d · ${topCase.status}`,
+                      query: `Show me the open TAC cases and support status` },
+                    { cls: 'severity-renewal', icon: '🟣',
+                      headline: `${eolDevices.length} EOL Refresh`,
+                      summary: `${eolDevices.map(d => d.name).join(', ')} — upgrade opportunity`,
+                      query: `Show me the device inventory and asset health` }
+                ];
+            }
 
             container.innerHTML = cards.map(c => `
                 <div class="attention-card ${c.cls}">
@@ -1878,14 +2122,55 @@
         }
 
         function initChat() {
+            const config = viewPersonaConfig[activeViewPersona];
             const typing = showTypingIndicator();
             setTimeout(() => {
                 typing.remove();
-                addMessage(initialMessage.role, initialMessage.text, initialMessage.suggestions);
+                // Build persona-specific greeting with data-driven suggestion buttons
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message assistant';
+                let html = `
+                    <div class="message-header">
+                        <div class="avatar">C</div>
+                        <div class="role-label">Cisco AI Assistant</div>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    </div>
+                    <div class="message-bubble">${config.greeting}</div>
+                    <div class="suggestions">
+                `;
+                config.suggestions.forEach(s => {
+                    html += `<button class="suggestion-btn" onclick="handleAttentionClick('${s.replace(/'/g, "\\'")}')">${s}</button>`;
+                });
+                html += '</div>';
+                messageDiv.innerHTML = html;
+                chatContainer.appendChild(messageDiv);
+                scrollToBottom();
             }, 1200);
         }
 
-        // Initialize on page load
+        function switchViewPersona(persona) {
+            if (persona === activeViewPersona) return;
+            activeViewPersona = persona;
+
+            // Update tab styling
+            document.querySelectorAll('.persona-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.persona === persona);
+            });
+
+            // Map to a conversation persona for the guided flow fallback
+            currentPersona = viewPersonaConfig[persona].mappedPersona;
+            conversation = personaConversations[currentPersona] || [];
+            currentStep = 0;
+
+            // Reset chat and reprioritize cards
+            chatContainer.innerHTML = '';
+            initAttentionPanel();
+            initChat();
+        }
+
+        // Initialize on page load — default to Network Engineer
+        currentPersona = viewPersonaConfig[activeViewPersona].mappedPersona;
+        conversation = personaConversations[currentPersona] || [];
         initAttentionPanel();
         initChat();
         initVoiceRecognition();
