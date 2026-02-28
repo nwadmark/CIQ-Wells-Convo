@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cisco Customer Intelligence – Wells Fargo</title>
+    <title>CIQ – WF Financial Network Operations</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -555,6 +555,179 @@
             color: #EF4444;
         }
 
+        /* ─── Status Bar ─── */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 16px;
+            padding: 8px 24px;
+            background: rgba(10, 10, 18, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            flex-shrink: 0;
+        }
+
+        .status-bar .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-bar .live-label {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .status-bar .divider {
+            color: rgba(255, 255, 255, 0.12);
+        }
+
+        .status-bar .urgent-count {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+
+        /* ─── Persona Tab Bar ─── */
+        .persona-tabs {
+            display: flex;
+            gap: 0;
+            background: rgba(15, 15, 25, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .persona-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .persona-tab:hover {
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .persona-tab.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+
+        /* ─── Proactive Insight Panel ─── */
+        .attention-panel {
+            background: linear-gradient(135deg, rgba(20, 20, 35, 0.95) 0%, rgba(15, 15, 28, 0.98) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 16px 24px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .attention-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .attention-panel-header span.pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .attention-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .attention-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            border-left: 3px solid transparent;
+            cursor: default;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .attention-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .attention-card.severity-critical { border-left-color: #ef4444; }
+        .attention-card.severity-misconfig { border-left-color: #eab308; }
+        .attention-card.severity-support  { border-left-color: #3b82f6; }
+        .attention-card.severity-renewal  { border-left-color: #a855f7; }
+
+        .attention-card .card-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .attention-card .card-headline {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+
+        .attention-card .card-summary {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.4;
+        }
+
+        .attention-card .card-action {
+            margin-top: 4px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+            align-self: flex-start;
+        }
+
+        .attention-card .card-action:hover {
+            background: rgba(96, 165, 250, 0.2);
+            color: #93c5fd;
+        }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .container {
@@ -574,6 +747,16 @@
 
             .brand-text h1 {
                 font-size: 18px;
+            }
+
+            .brand-text p {
+                font-size: 11px;
+            }
+
+            .status-bar {
+                padding: 6px 16px;
+                gap: 4px 10px;
+                font-size: 10px;
             }
 
             .chat-container {
@@ -611,6 +794,75 @@
                 font-size: 10px;
                 bottom: -20px;
             }
+
+            .persona-tabs {
+                padding: 0 16px;
+                overflow-x: auto;
+            }
+
+            .persona-tab {
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+
+            .attention-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .attention-panel {
+                padding: 12px 16px;
+            }
+        }
+
+        /* ─── Quick Action Bar ─── */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(10, 10, 18, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            overflow-x: auto;
+            flex-shrink: 0;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .quick-actions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-action-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-pill:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+        }
+
+        .quick-action-pill:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .attention-cards {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -621,8 +873,8 @@
                 <div class="brand">
                     <div class="brand-icon">C</div>
                     <div class="brand-text">
-                        <h1>Cisco Customer Intelligence</h1>
-                        <p>Wells Fargo Network Operations</p>
+                        <h1>CIQ</h1>
+                        <p>WF Financial Network Operations | AI-Powered Infrastructure Command Center</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -634,6 +886,44 @@
                 </div>
             </div>
         </div>
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">
+            <span class="live-indicator"><span class="live-dot"></span> <span class="live-label">Live</span></span>
+            <span class="divider">|</span>
+            <span>Last scanned: Feb 28, 2026</span>
+            <span class="divider">|</span>
+            <span>Data sources: 6 connected</span>
+            <span class="divider">|</span>
+            <span class="urgent-count" id="urgentCount"></span>
+        </div>
+
+        <!-- Persona Tab Bar -->
+        <div class="persona-tabs" id="personaTabs">
+            <button class="persona-tab active" data-persona="engineer" onclick="switchViewPersona('engineer')">🛠 Network Engineer</button>
+            <button class="persona-tab" data-persona="director" onclick="switchViewPersona('director')">📊 IT Director</button>
+            <button class="persona-tab" data-persona="partner" onclick="switchViewPersona('partner')">🤝 Partner / CSM</button>
+        </div>
+
+        <!-- Proactive Insight Panel -->
+        <div class="attention-panel" id="attentionPanel">
+            <div class="attention-panel-header">
+                <span class="pulse-dot"></span>
+                Proactive Insights — Items Requiring Attention
+            </div>
+            <div class="attention-cards" id="attentionCards">
+                <!-- Cards populated by JS from ciscoIQData -->
+            </div>
+        </div>
+
+        <!-- Quick Action Bar -->
+        <div class="quick-actions">
+            <button class="quick-action-pill" onclick="handleAttentionClick('What misconfigurations were found in the last assessment?')">🔍 Run Assessment</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('Give me a security posture summary')">🛡 Security Briefing</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('Show me all open TAC cases')">📋 Open Cases</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('What are the most critical vulnerabilities right now?')">⚠️ Critical Alerts</button>
+            <button class="quick-action-pill" onclick="handleAttentionClick('What contracts are expiring in the next 90 days?')">📅 Renewal Risk</button>
+        </div>
+
         <div class="chat-container" id="chatContainer">
             <!-- Messages will be inserted here -->
         </div>
@@ -656,6 +946,105 @@
     </div>
 
     <script>
+        // ─── CIQ Simulated Network Operational Data (WF Financial) ───
+        const ciscoIQData = {
+            assets: [
+                { name: "WF-RTR-CLT-01", type: "Router", model: "Cisco ASR 1006-X", datacenter: "Charlotte", healthScore: 92, lifecycleStatus: "Active" },
+                { name: "WF-RTR-CLT-02", type: "Router", model: "Cisco ASR 1002-HX", datacenter: "Charlotte", healthScore: 87, lifecycleStatus: "Active" },
+                { name: "WF-SW-CLT-01", type: "Switch", model: "Cisco Catalyst 9300", datacenter: "Charlotte", healthScore: 78, lifecycleStatus: "Active" },
+                { name: "WF-FW-CLT-01", type: "Firewall", model: "Cisco Firepower 4125", datacenter: "Charlotte", healthScore: 95, lifecycleStatus: "Active" },
+                { name: "WF-RTR-MSP-01", type: "Router", model: "Cisco ASR 9001", datacenter: "Minneapolis", healthScore: 64, lifecycleStatus: "End of Sale" },
+                { name: "WF-SW-MSP-01", type: "Switch", model: "Cisco Catalyst 9500", datacenter: "Minneapolis", healthScore: 91, lifecycleStatus: "Active" },
+                { name: "WF-FW-MSP-01", type: "Firewall", model: "Cisco ASA 5545-X", datacenter: "Minneapolis", healthScore: 53, lifecycleStatus: "End of Life" },
+                { name: "WF-SW-MSP-02", type: "Switch", model: "Cisco Nexus 9336C-FX2", datacenter: "Minneapolis", healthScore: 88, lifecycleStatus: "Active" },
+                { name: "WF-RTR-SFO-01", type: "Router", model: "Cisco ISR 4461", datacenter: "San Francisco", healthScore: 71, lifecycleStatus: "Active" },
+                { name: "WF-SW-SFO-01", type: "Switch", model: "Cisco Catalyst 9200", datacenter: "San Francisco", healthScore: 46, lifecycleStatus: "End of Life" },
+                { name: "WF-FW-SFO-01", type: "Firewall", model: "Cisco Firepower 2130", datacenter: "San Francisco", healthScore: 83, lifecycleStatus: "Active" },
+                { name: "WF-SW-SFO-02", type: "Switch", model: "Cisco Nexus 93180YC-FX", datacenter: "San Francisco", healthScore: 69, lifecycleStatus: "End of Sale" }
+            ],
+
+            vulnerabilities: [
+                { cveId: "CVE-2024-20353", severity: "Critical", affectedDevices: ["WF-FW-CLT-01", "WF-FW-SFO-01"], daysOpen: 42, recommendedFix: "Upgrade to FTD 7.4.1.1 or apply hotfix cisco-sa-asaftd-websrvs-dos" },
+                { cveId: "CVE-2024-20359", severity: "Critical", affectedDevices: ["WF-FW-MSP-01"], daysOpen: 38, recommendedFix: "Migrate from ASA 5545-X to Firepower 4100; device is End of Life" },
+                { cveId: "CVE-2023-20198", severity: "Critical", affectedDevices: ["WF-SW-CLT-01", "WF-SW-SFO-01", "WF-RTR-SFO-01"], daysOpen: 127, recommendedFix: "Upgrade IOS-XE to 17.9.4a or later; disable HTTP/HTTPS server if unused" },
+                { cveId: "CVE-2024-20356", severity: "High", affectedDevices: ["WF-SW-MSP-02", "WF-SW-SFO-02"], daysOpen: 29, recommendedFix: "Apply NX-OS patch 10.4(2) and restrict CIMC access to management VLAN" },
+                { cveId: "CVE-2024-20291", severity: "High", affectedDevices: ["WF-RTR-CLT-01", "WF-RTR-CLT-02", "WF-RTR-MSP-01"], daysOpen: 55, recommendedFix: "Upgrade to IOS-XE 17.12.3 or apply ACL hardening per PSIRT advisory" },
+                { cveId: "CVE-2023-20273", severity: "High", affectedDevices: ["WF-SW-CLT-01", "WF-SW-SFO-01"], daysOpen: 112, recommendedFix: "Upgrade IOS-XE to 17.9.4a; rotate local credentials on affected switches" },
+                { cveId: "CVE-2024-20379", severity: "Medium", affectedDevices: ["WF-FW-MSP-01", "WF-FW-CLT-01"], daysOpen: 18, recommendedFix: "Disable WebVPN customization or upgrade to ASA 9.18(4.22)" },
+                { cveId: "CVE-2024-20314", severity: "Medium", affectedDevices: ["WF-RTR-SFO-01"], daysOpen: 34, recommendedFix: "Upgrade IOS-XE to 17.11.1a; limit SSH access to jump hosts only" }
+            ],
+
+            security: {
+                postureScore: 67,
+                postureMax: 100,
+                recentAnomalies: [
+                    { description: "Unusual East-West traffic spike on MPLS backbone between Charlotte and Minneapolis DCs", detectedDate: "2026-02-22", severity: "High" },
+                    { description: "Repeated failed TACACS+ authentication attempts from WF-SW-SFO-01 to ISE cluster", detectedDate: "2026-02-24", severity: "Medium" },
+                    { description: "Unexpected BGP route advertisement from WF-RTR-MSP-01 leaking internal prefixes to DMZ segment", detectedDate: "2026-02-20", severity: "Critical" }
+                ],
+                compliance: {
+                    pciDss: { status: "Non-Compliant", findings: 4, details: "Open findings on firewall rule review cadence and encrypted key management" },
+                    sox: { status: "Compliant with Exceptions", findings: 2, details: "Two change-management audit gaps in Minneapolis DC switch configs" }
+                }
+            },
+
+            assessments: {
+                lastAssessmentDate: "2026-02-10",
+                misconfigurations: [
+                    { deviceName: "WF-SW-CLT-01", issue: "Telnet enabled on management interface; SSH-only policy violated", riskLevel: "High" },
+                    { deviceName: "WF-FW-MSP-01", issue: "Default SNMP community string 'public' still configured", riskLevel: "Critical" },
+                    { deviceName: "WF-RTR-SFO-01", issue: "NTP configured with unauthenticated public servers instead of internal stratum-1", riskLevel: "Medium" },
+                    { deviceName: "WF-SW-SFO-02", issue: "Spanning-tree PortFast enabled on uplink trunk ports", riskLevel: "High" },
+                    { deviceName: "WF-RTR-CLT-02", issue: "OSPF adjacency using plaintext authentication instead of MD5", riskLevel: "Medium" }
+                ],
+                configDriftCount: 23
+            },
+
+            supportCases: [
+                { caseNumber: "SR-694281037", title: "Firepower 4125 intermittent packet drops on TLS 1.3 inspection", severity: "S1", daysOpen: 3, status: "Customer Updated", assignedEngineer: "Rajesh Krishnamurthy" },
+                { caseNumber: "SR-694277814", title: "ASR 1006-X memory leak in QoS policy-map after IOS-XE 17.11 upgrade", severity: "S2", daysOpen: 11, status: "Pending Engineering", assignedEngineer: "Maria Santos" },
+                { caseNumber: "SR-694265590", title: "Catalyst 9300 stack ring failure on switch 3 of 8", severity: "S2", daysOpen: 18, status: "Workaround Provided", assignedEngineer: "David Chen" },
+                { caseNumber: "SR-694259183", title: "ISE 3.3 posture policy not enforcing on 802.1X re-auth for Nexus 9336C", severity: "S3", daysOpen: 26, status: "Pending Customer", assignedEngineer: "Anil Mehta" },
+                { caseNumber: "SR-694250741", title: "SD-WAN vManage certificate renewal failing across Minneapolis hub", severity: "S2", daysOpen: 34, status: "Escalated to BU", assignedEngineer: "Jennifer Walsh" },
+                { caseNumber: "SR-694243298", title: "Nexus 93180YC-FX CoPP policy drops legitimate SNMP polling in SFO DC", severity: "S4", daysOpen: 45, status: "Solution Provided", assignedEngineer: "Thomas Rivera" }
+            ],
+
+            renewals: [
+                { contractId: "CON-SNT-WF-2024-0871", productName: "Cisco DNA Advantage — Catalyst 9300/9500 (217 licenses)", expiryDate: "2026-04-15", annualValue: 1243000 },
+                { contractId: "CON-ECMU-WF-2024-0344", productName: "Cisco Secure Firewall Threat Defense — Firepower 4100 Series", expiryDate: "2026-03-28", annualValue: 487500 },
+                { contractId: "CON-SNT-WF-2024-0592", productName: "Cisco Smart Net Total Care — ASR 1000 Series Routers", expiryDate: "2026-05-01", annualValue: 329000 },
+                { contractId: "CON-SAU-WF-2024-0118", productName: "Cisco ThousandEyes — Enterprise Agent (85 agents)", expiryDate: "2026-04-07", annualValue: 178500 }
+            ]
+        };
+
+        // ─── View Persona State ─────────────────────────────────────────
+        let activeViewPersona = 'engineer';
+
+        const viewPersonaConfig = {
+            engineer: {
+                greeting: "Good morning. I've scanned 12 devices across your environment. You have 3 critical CVEs, including one open 127 days. Want me to walk you through remediation priorities?",
+                suggestions: ["Show me the CVEs", "Check device health", "What needs my attention"],
+                mappedPersona: "Network Ops (Global)"
+            },
+            director: {
+                greeting: "Good morning. Your security posture is 67/100. You have $2.24M in contracts expiring in 90 days and one S2 case approaching SLA breach. Want an executive summary?",
+                suggestions: ["Executive summary", "Show contract risk", "Review security posture"],
+                mappedPersona: "Executive Overview"
+            },
+            partner: {
+                greeting: "Good morning. WF Financial has 3 critical vulnerabilities and an S2 case escalated to BU. Two renewal opportunities total $876K. Want to review customer health?",
+                suggestions: ["Review customer health", "Show renewal opportunities", "Check open escalations"],
+                mappedPersona: "Procurement / Asset Mgmt"
+            }
+        };
+
+        // Returns the appropriate string for the active view persona
+        function _tone(eng, dir, csm) {
+            if (activeViewPersona === 'director') return dir;
+            if (activeViewPersona === 'partner') return csm;
+            return eng;
+        }
+
         let currentPersona = null;
         let personaConversations = {};
 
@@ -1141,12 +1530,6 @@
             }
         ];
 
-        const initialMessage = {
-            role: "assistant",
-            text: "Welcome to Cisco Customer Intelligence for Wells Fargo. I'm your copilot across your Cisco estate (networking, security, collaboration, data center). Which persona would you like to use today?",
-            suggestions: ["Network Ops (Global)", "Security Ops (SOC)", "Procurement / Asset Mgmt", "Executive Overview"]
-        };
-
         let conversation = [];
         let currentStep = 0;
         const chatContainer = document.getElementById('chatContainer');
@@ -1251,7 +1634,7 @@
             messageDiv.className = `message ${role}`;
 
             const avatarLetter = role === 'assistant' ? 'C' : 'W';
-            const roleName = role === 'assistant' ? 'Cisco AI Assistant' : 'Wells Fargo Network Ops';
+            const roleName = role === 'assistant' ? 'CIQ Assistant' : 'WF Financial Network Ops';
 
             let html = `
                 <div class="message-header">
@@ -1282,30 +1665,7 @@
                 btn.disabled = true;
             });
 
-            // Check if this is persona selection (no persona set yet)
-            if (!currentPersona) {
-                const personaName = initialMessage.suggestions[suggestionIndex];
-                currentPersona = personaName;
-                conversation = personaConversations[personaName];
-                currentStep = -1; // Will be incremented to 0
-
-                // Show user selection
-                addMessage('user', personaName);
-
-                // Show first message of selected persona
-                setTimeout(() => {
-                    const typing = showTypingIndicator();
-                    setTimeout(() => {
-                        typing.remove();
-                        const firstMessage = conversation[0];
-                        addMessage(firstMessage.role, firstMessage.text, firstMessage.suggestions);
-                        currentStep = 0;
-                    }, 1200);
-                }, 600);
-                return;
-            }
-
-            // Regular conversation flow
+            // Guided conversation flow
             currentStep++;
             if (currentStep < conversation.length) {
                 const userMessage = conversation[currentStep];
@@ -1327,154 +1687,367 @@
 
         function resetChat() {
             currentStep = 0;
-            currentPersona = null;
-            conversation = [];
+            currentPersona = viewPersonaConfig[activeViewPersona].mappedPersona;
+            conversation = personaConversations[currentPersona] || [];
             chatContainer.innerHTML = '';
+            initAttentionPanel();
             initChat();
         }
 
+        // ─── Data-Driven Response Helpers ──────────────────────────────
+        const _sevRank = { Critical: 0, High: 1, Medium: 2, Low: 3, S1: 0, S2: 1, S3: 2, S4: 3 };
+        function _fmtDollars(v) { return v >= 1000000 ? `$${(v/1000000).toFixed(1)}M` : `$${(v/1000).toFixed(0)}K`; }
+        function _daysUntil(dateStr) { return Math.ceil((new Date(dateStr) - new Date()) / 86400000); }
+
+        // ── Single-item detail builders (tone-aware) ─────────────────────
+        function _cveDetail(cve) {
+            const n = cve.affectedDevices.length;
+            const opening = _tone(
+                `<strong>${cve.cveId}</strong> is a ${cve.severity}-severity advisory affecting ${n} device${n > 1 ? 's' : ''}, open for ${cve.daysOpen} days.`,
+                `<strong>${cve.cveId}</strong> (${cve.severity}) is creating unpatched exposure on ${n} production device${n > 1 ? 's' : ''}. It's been open ${cve.daysOpen} days — risk is growing.`,
+                `<strong>${cve.cveId}</strong> (${cve.severity}) is impacting ${n} device${n > 1 ? 's' : ''} in the WF Financial environment. Open ${cve.daysOpen} days — this is a proactive remediation opportunity.`
+            );
+            const action = _tone(
+                `I'd recommend staging a remediation pilot starting with the lowest-risk device. Want me to draft a change plan or export to ServiceNow?`,
+                `Leaving this unpatched creates audit exposure and potential operational disruption. Want me to prepare a risk brief with remediation timeline for leadership?`,
+                `Helping the customer close this quickly strengthens the relationship. Want me to draft a remediation proposal or schedule a CX review?`
+            );
+            return `${opening}<br><br>` +
+                `• <strong>Devices:</strong> ${cve.affectedDevices.join(', ')}<br>` +
+                `• <strong>Recommended fix:</strong> ${cve.recommendedFix}<br><br>` +
+                action;
+        }
+
+        function _caseDetail(sr) {
+            const opening = _tone(
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days — currently <em>${sr.status}</em>.`,
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is approaching SLA risk for your operations team.' : ''}`,
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) is open ${sr.daysOpen} days for WF Financial. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is a customer satisfaction risk — consider a proactive check-in.' : ''}`
+            );
+            const action = _tone(
+                (sr.daysOpen >= 14 ? `This case is aging — consider requesting a management escalation or callback. ` : ``) + `Want me to escalate, request a callback, or attach additional diagnostics?`,
+                `Want me to prepare an impact summary for leadership or request a management escalation?`,
+                `Want me to coordinate with the TAC engineer, or prepare a status update for the customer?`
+            );
+            return `${opening}<br><br>` +
+                `• <strong>Issue:</strong> ${sr.title}<br>` +
+                `• <strong>Engineer:</strong> ${sr.assignedEngineer}<br><br>` +
+                action;
+        }
+
+        function _renewalDetail(con) {
+            const d = _daysUntil(con.expiryDate);
+            const opening = _tone(
+                `<strong>${con.contractId}</strong> covers ${con.productName} and expires <strong>${con.expiryDate}</strong> (${d} days remaining).`,
+                `<strong>${con.contractId}</strong> — ${_fmtDollars(con.annualValue)}/yr — expires <strong>${con.expiryDate}</strong> (${d} days). ${d <= 45 ? 'This needs budget authorization soon to avoid a coverage lapse.' : ''}`,
+                `<strong>${con.contractId}</strong> is a <strong>${_fmtDollars(con.annualValue)}/yr</strong> renewal opportunity expiring ${con.expiryDate} (${d} days). ${d <= 45 ? 'Proactive outreach now maximizes close rate.' : ''}`
+            );
+            const action = _tone(
+                (d <= 45 ? `This is getting tight — I'd recommend generating a renewal quote now. ` : ``) + `Want me to prepare 1/3/5-year co-term options, or route directly to Procurement?`,
+                `Want me to model renewal scenarios for budget planning, or route directly for approval?`,
+                `Want me to prepare a renewal proposal with co-term savings, or schedule a customer review meeting?`
+            );
+            return `${opening}<br><br>` +
+                `• <strong>Product:</strong> ${con.productName}<br>` +
+                `• <strong>Annual value:</strong> ${_fmtDollars(con.annualValue)}<br><br>` +
+                action;
+        }
+
+        function _misconfigDetail(m) {
+            const opening = _tone(
+                `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk finding from the ${ciscoIQData.assessments.lastAssessmentDate} assessment.`,
+                `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk misconfiguration that could create compliance exposure. Detected ${ciscoIQData.assessments.lastAssessmentDate}.`,
+                `Assessment on ${ciscoIQData.assessments.lastAssessmentDate} flagged a <strong>${m.riskLevel}</strong>-risk issue on <strong>${m.deviceName}</strong> in the WF Financial environment.`
+            );
+            const action = _tone(
+                `Want me to push a remediation config, open a change request, or schedule a maintenance window?`,
+                `Want me to quantify the risk exposure and prepare a remediation brief for the team?`,
+                `This is a good touchpoint for a config review engagement. Want me to draft a CX proposal?`
+            );
+            return `${opening}<br><br>` +
+                `• <strong>Issue:</strong> ${m.issue}<br>` +
+                `• <strong>Estate-wide drift:</strong> ${ciscoIQData.assessments.configDriftCount} devices off golden config<br><br>` +
+                action;
+        }
+
+        // ── Category-level builders (tone-aware) ─────────────────────────
+        function _vulnCategory() {
+            const v = ciscoIQData.vulnerabilities;
+            const bySev = { Critical: 0, High: 0, Medium: 0 };
+            v.forEach(c => bySev[c.severity] = (bySev[c.severity] || 0) + 1);
+            const sorted = [...v].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen));
+            const top5 = sorted.slice(0, 5);
+            const totalDevices = new Set(v.flatMap(c => c.affectedDevices)).size;
+
+            let html = _tone(
+                `You have <strong>${v.length} open CVEs</strong> — ${bySev.Critical} critical, ${bySev.High} high, ${bySev.Medium} medium — mapped to your device inventory.`,
+                `<strong>${bySev.Critical} critical vulnerabilities</strong> are creating unpatched exposure across ${totalDevices} production devices. Total open advisories: ${v.length}.`,
+                `WF Financial has <strong>${v.length} open CVEs</strong> (${bySev.Critical} critical) affecting ${totalDevices} devices. This is a remediation services opportunity.`
+            ) + `<br><br>`;
+
+            top5.forEach(c => {
+                html += _tone(
+                    `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.join(', ')}, open ${c.daysOpen}d. Fix: ${c.recommendedFix.split(';')[0]}.<br>`,
+                    `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.length} devices at risk, open ${c.daysOpen}d. Operational impact if exploited.<br>`,
+                    `• <strong>${c.cveId}</strong> (${c.severity}) — ${c.affectedDevices.length} devices, open ${c.daysOpen}d. Remediation engagement potential.<br>`
+                );
+            });
+
+            html += '<br>' + _tone(
+                `I'd start with ${sorted[0].cveId} — it's been open the longest at ${sorted[0].daysOpen} days. Want me to draft a remediation plan or stage a pilot?`,
+                `${sorted[0].cveId} has been open ${sorted[0].daysOpen} days — longest exposure window. Want me to prepare a risk brief for leadership?`,
+                `${sorted[0].cveId} (${sorted[0].daysOpen} days open) is the top remediation priority. Want me to draft a services proposal for the customer?`
+            );
+            return html;
+        }
+
+        function _securityCategory() {
+            const sec = ciscoIQData.security;
+            const anomalies = [...sec.recentAnomalies].sort((a, b) => _sevRank[a.severity] - _sevRank[b.severity]);
+
+            let html = _tone(
+                `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong>, with ${anomalies.length} recent anomalies and compliance gaps in both PCI-DSS and SOX.`,
+                `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong> — below the 75-point target. Compliance gaps in PCI-DSS and SOX create audit exposure.`,
+                `WF Financial security posture: <strong>${sec.postureScore}/${sec.postureMax}</strong>. Compliance gaps present an opportunity for security assessment services.`
+            ) + `<br><br>`;
+
+            anomalies.forEach(a => {
+                html += `• <strong>${a.severity}:</strong> ${a.description} <span style="opacity:.5">(${a.detectedDate})</span><br>`;
+            });
+            html += `• <strong>PCI-DSS:</strong> ${sec.compliance.pciDss.status} — ${sec.compliance.pciDss.findings} findings. ${sec.compliance.pciDss.details}<br>`;
+            html += `• <strong>SOX:</strong> ${sec.compliance.sox.status} — ${sec.compliance.sox.findings} findings. ${sec.compliance.sox.details}<br>`;
+
+            html += '<br>' + _tone(
+                `The ${anomalies[0].severity.toLowerCase()}-severity anomaly from ${anomalies[0].detectedDate} is the top priority. Want me to investigate further or open a remediation task?`,
+                `The compliance gaps are the most business-critical items here. Want me to prepare an audit-readiness brief?`,
+                `Compliance gaps and the posture score are good conversation starters. Want me to prepare a security health review for the customer?`
+            );
+            return html;
+        }
+
+        function _assetCategory() {
+            const a = ciscoIQData.assets;
+            const sorted = [...a].sort((x, y) => x.healthScore - y.healthScore);
+            const eol = a.filter(d => d.lifecycleStatus === 'End of Life');
+            const eos = a.filter(d => d.lifecycleStatus === 'End of Sale');
+            const avgHealth = Math.round(a.reduce((s, d) => s + d.healthScore, 0) / a.length);
+            const dcs = [...new Set(a.map(d => d.datacenter))].length;
+
+            let html = _tone(
+                `You have <strong>${a.length} monitored devices</strong> across ${dcs} datacenters — average health ${avgHealth}/100, with ${eol.length} End of Life and ${eos.length} End of Sale.`,
+                `<strong>${a.length} devices</strong> across ${dcs} datacenters. Average health ${avgHealth}/100. <strong>${eol.length} EOL devices</strong> are no longer receiving security patches — operational risk.`,
+                `WF Financial has <strong>${a.length} devices</strong> across ${dcs} datacenters (avg health ${avgHealth}/100). <strong>${eol.length} EOL</strong> and ${eos.length} EOS devices present refresh opportunity.`
+            ) + `<br><br>`;
+
+            sorted.slice(0, 5).forEach(d => {
+                const flag = d.lifecycleStatus === 'End of Life' ? ' ⚠️ EOL' : d.lifecycleStatus === 'End of Sale' ? ' ⚠️ EOS' : '';
+                html += `• <strong>${d.name}</strong> (${d.model}, ${d.datacenter}) — Health ${d.healthScore}${flag}<br>`;
+            });
+
+            if (eol.length > 0) {
+                html += '<br>' + _tone(
+                    `The ${eol.length} EOL device${eol.length > 1 ? 's' : ''} (${eol.map(d => d.name).join(', ')}) no longer receive${eol.length === 1 ? 's' : ''} security patches. Want me to build a refresh plan or check contract coverage?`,
+                    `The ${eol.length} EOL devices create security and compliance exposure. Want me to model refresh costs and timeline for budget planning?`,
+                    `${eol.length} EOL devices are a hardware refresh opportunity. Want me to prepare a refresh proposal with migration options?`
+                );
+            } else {
+                html += `<br>No EOL devices — estate is in good shape. Want a detailed health breakdown by datacenter?`;
+            }
+            return html;
+        }
+
+        function _assessmentCategory() {
+            const asmts = ciscoIQData.assessments;
+            const sorted = [...asmts.misconfigurations].sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel]);
+
+            let html = _tone(
+                `Last assessment <strong>(${asmts.lastAssessmentDate})</strong> found ${sorted.length} misconfigurations, with ${asmts.configDriftCount} devices drifted from golden config.`,
+                `Assessment from <strong>${asmts.lastAssessmentDate}</strong>: ${sorted.length} misconfigurations found, ${asmts.configDriftCount} devices off golden config. This creates compliance and operational risk.`,
+                `WF Financial assessment (${asmts.lastAssessmentDate}): ${sorted.length} misconfigurations, ${asmts.configDriftCount} config drift. Remediation engagement opportunity.`
+            ) + `<br><br>`;
+
+            sorted.slice(0, 5).forEach(m => {
+                html += `• <strong>${m.deviceName}</strong> — ${m.riskLevel}: ${m.issue}<br>`;
+            });
+
+            html += '<br>' + _tone(
+                `The ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} is the most urgent. Want me to push a fix, open a change request, or run a fresh assessment?`,
+                `The ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} should be remediated before the next audit window. Want me to prepare a remediation timeline?`,
+                `Start with the ${sorted[0].riskLevel.toLowerCase()}-risk finding on ${sorted[0].deviceName} for quick customer value. Want me to draft a config optimization proposal?`
+            );
+            return html;
+        }
+
+        function _casesCategory() {
+            const cases = ciscoIQData.supportCases;
+            const s1s2 = cases.filter(c => c.severity === 'S1' || c.severity === 'S2');
+            const sorted = [...cases].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen));
+            const aging = s1s2.filter(c => c.daysOpen >= 14);
+
+            let html = _tone(
+                `You have <strong>${cases.length} open TAC cases</strong> — ${s1s2.length} at S1/S2 severity.`,
+                `<strong>${cases.length} open TAC cases</strong>, ${s1s2.length} at critical severity. ${aging.length > 0 ? `${aging.length} case${aging.length > 1 ? 's' : ''} aging beyond SLA — operational risk.` : ''}`,
+                `WF Financial has <strong>${cases.length} open TAC cases</strong> (${s1s2.length} S1/S2). ${aging.length > 0 ? `${aging.length} aging beyond 2 weeks — customer satisfaction risk.` : ''}`
+            );
+            if (activeViewPersona === 'engineer' && aging.length > 0) {
+                html += ` <strong>${aging.length}</strong> ha${aging.length > 1 ? 've' : 's'} been open over 2 weeks.`;
+            }
+            html += `<br><br>`;
+
+            sorted.slice(0, 5).forEach(c => {
+                const flag = (c.severity === 'S1' || c.severity === 'S2') && c.daysOpen >= 14 ? ' ⚠️' : '';
+                html += `• <strong>${c.caseNumber}</strong> (${c.severity}) — ${c.title.substring(0, 65)}${c.title.length > 65 ? '…' : ''}, ${c.daysOpen}d, <em>${c.status}</em>${flag}<br>`;
+            });
+
+            const worst = sorted[0];
+            html += '<br>' + _tone(
+                `${worst.caseNumber} is the highest priority. Want me to escalate, request a callback from ${worst.assignedEngineer}, or attach diagnostics?`,
+                `${worst.caseNumber} poses the highest operational risk. Want me to prepare an escalation brief or impact assessment?`,
+                `${worst.caseNumber} is the top customer concern. Want me to coordinate an escalation or prepare a proactive status update?`
+            );
+            return html;
+        }
+
+        function _renewalsCategory() {
+            const r = ciscoIQData.renewals;
+            const sorted = [...r].sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+            const totalValue = r.reduce((s, c) => s + c.annualValue, 0);
+            const soonest = _daysUntil(sorted[0].expiryDate);
+
+            let html = _tone(
+                `<strong>${r.length} contracts</strong> approaching renewal — combined annual value ${_fmtDollars(totalValue)}. Soonest expires in ${soonest} days.`,
+                `<strong>${_fmtDollars(totalValue)}</strong> in annual contract value approaching renewal. ${r.length} contracts, soonest in ${soonest} days. Budget authorization needed.`,
+                `<strong>${_fmtDollars(totalValue)}</strong> in renewal opportunity across ${r.length} contracts. Soonest expires in ${soonest} days — proactive engagement recommended.`
+            ) + `<br><br>`;
+
+            sorted.forEach(c => {
+                const d = _daysUntil(c.expiryDate);
+                const label = c.productName.length > 55 ? c.productName.substring(0, 55) + '…' : c.productName;
+                html += `• <strong>${c.contractId}</strong> — ${label}, expires ${c.expiryDate} (${d}d), ${_fmtDollars(c.annualValue)}/yr<br>`;
+            });
+
+            html += '<br>' + _tone(
+                `The ${sorted[0].contractId.split('-').slice(-1)[0]} contract is the most time-sensitive. Want me to generate renewal quotes with co-term options or route to Procurement?`,
+                `The ${sorted[0].contractId.split('-').slice(-1)[0]} contract needs immediate attention. Want me to model 1/3/5-year options with budget impact?`,
+                `${sorted[0].contractId.split('-').slice(-1)[0]} is the most time-sensitive deal. Want me to prepare a renewal proposal with co-term savings analysis?`
+            );
+            return html;
+        }
+
+        function _prioritiesDigest() {
+            const topVuln = [...ciscoIQData.vulnerabilities].sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen))[0];
+            const topMisconfig = [...ciscoIQData.assessments.misconfigurations].sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel])[0];
+            const topCase = [...ciscoIQData.supportCases].filter(c => c.severity === 'S1' || c.severity === 'S2').sort((a, b) => b.daysOpen - a.daysOpen)[0];
+            const topRenewal = [...ciscoIQData.renewals].sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+            const sec = ciscoIQData.security;
+            const critAnomaly = [...sec.recentAnomalies].sort((a, b) => _sevRank[a.severity] - _sevRank[b.severity])[0];
+            const totalRenewalValue = ciscoIQData.renewals.reduce((s, c) => s + c.annualValue, 0);
+
+            let html = _tone(
+                `Here's your cross-domain priority digest — items that need attention right now.`,
+                `Here's your executive summary — key risks and actions across the Cisco estate.`,
+                `Here's the WF Financial customer health summary — key risks and partner action items.`
+            ) + `<br><br>`;
+
+            html += _tone(
+                `🔴 <strong>Vulnerabilities:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs open, longest is ${topVuln.cveId} (${topVuln.daysOpen} days, ${topVuln.affectedDevices.length} devices). Remediation overdue.<br>`,
+                `🔴 <strong>Security Risk:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs unpatched across production. Posture score ${sec.postureScore}/100. Audit exposure increasing.<br>`,
+                `🔴 <strong>Customer Risk:</strong> ${ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length} critical CVEs unpatched, posture ${sec.postureScore}/100. Proactive remediation strengthens relationship.<br>`
+            );
+            html += _tone(
+                `🟡 <strong>Config Risk:</strong> ${topMisconfig.riskLevel} misconfiguration on ${topMisconfig.deviceName} — ${topMisconfig.issue.toLowerCase()}<br>`,
+                `🟡 <strong>Compliance:</strong> PCI-DSS ${sec.compliance.pciDss.status} (${sec.compliance.pciDss.findings} findings), SOX ${sec.compliance.sox.status}. Audit window approaching.<br>`,
+                `🟡 <strong>Renewal Pipeline:</strong> ${_fmtDollars(totalRenewalValue)} across ${ciscoIQData.renewals.length} contracts. Soonest in ${_daysUntil(topRenewal.expiryDate)} days — outreach recommended.<br>`
+            );
+            html += _tone(
+                `🔵 <strong>Support:</strong> TAC case ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — <em>${topCase.status}</em>.<br>`,
+                `🔵 <strong>Operations:</strong> TAC case ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — SLA risk. <em>${topCase.status}</em>.<br>`,
+                `🔵 <strong>Escalations:</strong> ${topCase.caseNumber} (${topCase.severity}) open ${topCase.daysOpen} days — <em>${topCase.status}</em>. Customer satisfaction at risk.<br>`
+            );
+            html += _tone(
+                `🟣 <strong>Contracts:</strong> ${topRenewal.contractId} (${_fmtDollars(topRenewal.annualValue)}/yr) expires in ${_daysUntil(topRenewal.expiryDate)} days — renewal not yet initiated.<br>`,
+                `🟣 <strong>Financial:</strong> ${_fmtDollars(totalRenewalValue)}/yr in contract value at risk within 90 days. Budget authorization needed.<br>`,
+                `🟣 <strong>Growth:</strong> ${ciscoIQData.assets.filter(d => d.lifecycleStatus === 'End of Life').length} EOL devices = refresh opportunity. Combine with renewals for co-term savings.<br>`
+            );
+            html += _tone(
+                `⚠️ <strong>Security Posture:</strong> Score ${sec.postureScore}/${sec.postureMax}. ${critAnomaly.description.split(' on ')[0]} detected ${critAnomaly.detectedDate}.<br>`,
+                `⚠️ <strong>Posture Score:</strong> ${sec.postureScore}/${sec.postureMax} — below 75 target. Board reporting threshold breached.<br>`,
+                `⚠️ <strong>Health Score:</strong> Posture ${sec.postureScore}/${sec.postureMax}. Combined with open CVEs, recommend scheduling a Cisco CX health review.<br>`
+            );
+
+            html += '<br>' + _tone(
+                `I'd start with the config fix on ${topMisconfig.deviceName} (quick win, high risk) and the contract renewal (time-sensitive). Want me to take action on any of these?`,
+                `Top actions: authorize the ${topRenewal.contractId.split('-').slice(-1)[0]} renewal and schedule the compliance remediation. Want me to prepare a decision brief?`,
+                `Recommended partner actions: proactive renewal outreach on ${_fmtDollars(topRenewal.annualValue)} contract and a remediation services proposal. Want me to draft both?`
+            );
+            return html;
+        }
+
+        // ─── Unified Smart Response Router ───────────────────────────────
         function generateSmartResponse(userQuestion) {
-            const lowerQ = userQuestion.toLowerCase();
+            const q = userQuestion.toLowerCase();
 
-            // If no persona selected yet, guide them to select one
-            if (!currentPersona) {
-                return {
-                    text: "Please select a persona first using the buttons above (Network Ops, Security Ops, Procurement, or Executive Overview) to start our conversation.",
-                    showInfo: true
-                };
+            // ── Single-item lookups first (work even before persona selection) ──
+            const cveMatch = userQuestion.match(/CVE-[\d-]+/i);
+            if (cveMatch) {
+                const cve = ciscoIQData.vulnerabilities.find(v => v.cveId.toLowerCase() === cveMatch[0].toLowerCase());
+                if (cve) return { text: _cveDetail(cve), showInfo: false };
             }
 
-            // Check for TAC support requests (applies to all personas)
-            if (lowerQ.includes('tac') || lowerQ.includes('support case') || lowerQ.includes('support ticket') || lowerQ.includes('file case') || lowerQ.includes('open case') || lowerQ.includes('technical support')) {
-                return {
-                    text: "I can file TAC (Technical Assistance Center) cases automatically when I detect issues. In the Network Ops demo, I detect a Nexus 9K issue with high CoPP drops and elevated CPU, then file TAC case #625847392 with full diagnostics, severity classification, and live telemetry stream. The case is assigned to Advanced Services with <2 hour response time. Follow the guided conversation to see the complete TAC filing workflow in action.",
-                    showInfo: true
-                };
+            const srMatch = userQuestion.match(/SR-\d+/i);
+            if (srMatch) {
+                const sr = ciscoIQData.supportCases.find(c => c.caseNumber === srMatch[0]);
+                if (sr) return { text: _caseDetail(sr), showInfo: false };
             }
 
-            // Persona-specific responses
-            if (currentPersona === "Network Ops (Global)") {
-                if (lowerQ.includes('psirt') || lowerQ.includes('security') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
-                    return {
-                        text: "For security advisories, I map PSIRTs directly to your devices and can draft remediation plans. In this demo, we handle 3 critical PSIRTs affecting 217 devices (Catalyst 9300, ASA, FXOS) with automated pilot ring deployment. Use the suggestion buttons to walk through the PSIRT remediation workflow.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('capacity') || lowerQ.includes('bandwidth') || lowerQ.includes('wan') || lowerQ.includes('branch')) {
-                    return {
-                        text: "I monitor capacity across all 46 at-risk branches and can predict saturation windows. In this demo, we fix QoS issues at Austin Domain and plan upgrades for Newark (19 days to saturation). Follow the guided conversation to see capacity management in action.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('compliance') || lowerQ.includes('pci') || lowerQ.includes('sox') || lowerQ.includes('config') || lowerQ.includes('drift')) {
-                    return {
-                        text: "I run compliance scans for PCI, SOX, and configuration drift. In this demo, we discover 12 PCI violations, 4 SOX issues, and 22 switches off standard. Continue the conversation to see automated remediation task creation.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('issue') || lowerQ.includes('problem') || lowerQ.includes('outage') || lowerQ.includes('down') || lowerQ.includes('error')) {
-                    return {
-                        text: "When I detect issues, I can automatically file TAC cases with full diagnostics. In this demo, I detect a Nexus 9K spine switch with high CoPP drops and elevated CPU (68%), then file TAC case #625847392 with severity 2 (critical). Complete with real-time telemetry stream and <2 hour response SLA. Continue the conversation to see this workflow.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As a Network Ops assistant, I help with PSIRTs, capacity planning, compliance scanning, ACI operations, TAC case filing, and change management. Use the suggestion buttons above to explore these workflows, or ask about a specific area like security, capacity, or TAC support.",
-                    showInfo: true
-                };
+            const conMatch = userQuestion.match(/CON-[\w-]+/i);
+            if (conMatch) {
+                const con = ciscoIQData.renewals.find(r => r.contractId === conMatch[0]);
+                if (con) return { text: _renewalDetail(con), showInfo: false };
             }
 
-            if (currentPersona === "Security Ops (SOC)") {
-                if (lowerQ.includes('threat') || lowerQ.includes('attack') || lowerQ.includes('malware') || lowerQ.includes('incident')) {
-                    return {
-                        text: "I monitor active threats across SecureX, Firepower, Umbrella, and ISE. In this demo, we investigate lateral movement (10.45.22.18), analyze phishing campaigns, and hunt for reconnaissance activity from Tor exit nodes. Follow the guided flow to see incident response in action.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('cve') || lowerQ.includes('vulnerabilit') || lowerQ.includes('patch')) {
-                    return {
-                        text: "I track CVEs mapped to your assets and prioritize remediation. This demo covers 3 critical CVEs (Catalyst 9K, ASA auth bypass, FMC) with risk-based patching plans. Continue the conversation to see vulnerability management workflows.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('compliance') || lowerQ.includes('soc2') || lowerQ.includes('audit')) {
-                    return {
-                        text: "I monitor security compliance for SOC2, PCI, and custom frameworks. In this demo, we're at 96% SOC2 compliance with 4% gaps in logging, MFA, and access reviews. Follow the flow to see remediation planning.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As a Security Ops assistant, I help with threat detection, incident response, vulnerability management, threat hunting, and compliance. Use the buttons to explore threat investigations, CVE remediation, or compliance workflows.",
-                    showInfo: true
-                };
+            const deviceMisconfig = ciscoIQData.assessments.misconfigurations.find(m => q.includes(m.deviceName.toLowerCase()));
+            if (deviceMisconfig && (q.includes('misconfig') || q.includes('config') || q.includes('finding') || q.includes('risk'))) {
+                return { text: _misconfigDetail(deviceMisconfig), showInfo: false };
             }
 
-            if (currentPersona === "Procurement / Asset Mgmt") {
-                if (lowerQ.includes('contract') || lowerQ.includes('renewal') || lowerQ.includes('expir')) {
-                    return {
-                        text: "I track all contract renewals and expirations. In this demo, we have 8 contracts expiring in 30 days ($2.4M) and 23 in 90 days ($8.7M). We optimize a SmartNet renewal with 5-year co-terming for $265K savings. Follow the guided conversation to see contract management.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('license') || lowerQ.includes('true-up') || lowerQ.includes('reclaim')) {
-                    return {
-                        text: "I identify license optimization opportunities across your entire portfolio. In this demo, we reclaim $433K/year through Umbrella, DNA, Webex, and Duo license rightsizing. Continue the flow to see automated license adjustment via Smart Licensing.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('eol') || lowerQ.includes('eos') || lowerQ.includes('refresh') || lowerQ.includes('end of life')) {
-                    return {
-                        text: "I track all EOL/EOS devices and create phased refresh roadmaps. This demo shows 67 EOL devices requiring $1.8M refresh across 4 quarters (ASA, Nexus, Catalyst, UCS). Follow the conversation to see budget planning.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('cost') || lowerQ.includes('saving') || lowerQ.includes('ela') || lowerQ.includes('negotiat')) {
-                    return {
-                        text: "I analyze spend and identify renegotiation opportunities. In this demo, we optimize a $30.2M Cisco ELA down to $26.8M (11% reduction) through consumption-based pricing and 3-year commitment. Continue to see ELA optimization.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As a Procurement assistant, I help with contract renewals, license optimization, EOL/EOS tracking, spend analysis, and vendor negotiations. Use the buttons to explore contract management, license reclamation, or refresh planning.",
-                    showInfo: true
-                };
+            // ── Category-level data queries (also work before persona selection) ──
+            if (q.includes('vulnerabilit') || q.includes('cve') || q.includes('psirt') || q.includes('patch')) {
+                return { text: _vulnCategory(), showInfo: false };
             }
 
-            if (currentPersona === "Executive Overview") {
-                if (lowerQ.includes('kpi') || lowerQ.includes('metric') || lowerQ.includes('performance')) {
-                    return {
-                        text: "I track key performance indicators across your entire Cisco estate. In this demo: Availability 99.94%, Security Score 87/100, MTTR 4.2h, and 47 incidents (down 12%). Follow the guided flow to see detailed KPI analysis and improvement plans.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('risk') || lowerQ.includes('exposure')) {
-                    return {
-                        text: "I provide enterprise risk visibility with mitigation tracking. This demo covers Top 5 risks: Security (CVEs), Compliance (SOC2), Capacity (WAN saturation), Financial (license waste), and EOL devices. Continue to see risk deep-dives and remediation.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('financial') || lowerQ.includes('cost') || lowerQ.includes('roi') || lowerQ.includes('saving')) {
-                    return {
-                        text: "I provide financial optimization analysis across your $47.2M IT spend. In this demo, we identify $4.1M/year in savings through license reclamation, ELA renegotiation, and operational improvements. Follow the flow to see board-ready financial summaries.",
-                        showInfo: true
-                    };
-                }
-                if (lowerQ.includes('strateg') || lowerQ.includes('roadmap') || lowerQ.includes('2025') || lowerQ.includes('planning')) {
-                    return {
-                        text: "I help with strategic planning and roadmap development. This demo shows 2025 priorities: Zero Trust (95% maturity), AI/Automation (40% MTTR reduction), Cloud Migration, and Sustainability. Continue to see strategic investment planning.",
-                        showInfo: true
-                    };
-                }
-                return {
-                    text: "As an Executive assistant, I provide KPI dashboards, risk management, financial optimization, strategic planning, and board-ready reporting. Use the buttons to explore performance metrics, risk analysis, or 2025 strategy.",
-                    showInfo: true
-                };
+            if (q.includes('security') || q.includes('posture') || q.includes('compliance') || q.includes('pci') || q.includes('sox') || q.includes('anomal')) {
+                return { text: _securityCategory(), showInfo: false };
             }
 
-            // Generic fallback
+            if (q.includes('asset') || q.includes('device') || q.includes('inventory') || q.includes('hardware') || q.includes('eol') || q.includes('end of life')) {
+                return { text: _assetCategory(), showInfo: false };
+            }
+
+            if (q.includes('assessment') || q.includes('misconfiguration') || q.includes('misconfig') || q.includes('config drift') || q.includes('drift')) {
+                return { text: _assessmentCategory(), showInfo: false };
+            }
+
+            if (q.includes('case') || q.includes('tac') || q.includes('support') || q.includes('escalation')) {
+                return { text: _casesCategory(), showInfo: false };
+            }
+
+            if (q.includes('renewal') || q.includes('contract') || q.includes('expir') || q.includes('license') || q.includes('renewal opportunit')) {
+                return { text: _renewalsCategory(), showInfo: false };
+            }
+
+            if (q.includes('attention') || q.includes('priorit') || q.includes('summary') || q.includes('what needs') || q.includes('/priorities') || q.includes('overview') || q.includes('digest') || q.includes('customer health') || q.includes('executive summary')) {
+                return { text: _prioritiesDigest(), showInfo: false };
+            }
+
+            // ── Generic fallback ────────────────────────────────────────────
             return {
-                text: `That's an interesting question for the ${currentPersona} persona! This is a guided demo showcasing specific workflows. I'd recommend using the suggestion buttons to explore the capabilities step-by-step, or ask about specific topics relevant to your role.`,
-                showInfo: true
+                text: _tone(
+                    `I can pull live data on <strong>vulnerabilities</strong>, <strong>assets</strong>, <strong>security posture</strong>, <strong>TAC cases</strong>, <strong>config assessments</strong>, and <strong>contract renewals</strong>. Try asking about any of those, or say <em>"what needs my attention"</em> for a full priorities digest.`,
+                    `I can surface <strong>risk exposure</strong>, <strong>contract status</strong>, <strong>compliance gaps</strong>, <strong>operational issues</strong>, and <strong>financial impact</strong>. Try asking about any of those, or say <em>"executive summary"</em> for a full overview.`,
+                    `I can show <strong>customer health</strong>, <strong>renewal opportunities</strong>, <strong>open escalations</strong>, <strong>remediation gaps</strong>, and <strong>growth potential</strong>. Try asking about any of those, or say <em>"review customer health"</em> for a full summary.`
+                ),
+                showInfo: false
             };
         }
 
@@ -1502,7 +2075,7 @@
                     let html = `
                         <div class="message-header">
                             <div class="avatar">C</div>
-                            <div class="role-label">Cisco AI Assistant</div>
+                            <div class="role-label">CIQ Assistant</div>
                             <div class="message-time">${getCurrentTime()}</div>
                         </div>
                         <div class="message-bubble">${response.text}</div>
@@ -1536,15 +2109,170 @@
             }
         });
 
+        // ─── Status Bar ─────────────────────────────────────────────────
+        function initStatusBar() {
+            const criticalCVEs = ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length;
+            const agingS1S2 = ciscoIQData.supportCases.filter(c =>
+                (c.severity === 'S1' || c.severity === 'S2') && c.daysOpen > 30
+            ).length;
+            const count = criticalCVEs + agingS1S2;
+            const el = document.getElementById('urgentCount');
+            if (el) el.textContent = `⚠ ${count} item${count !== 1 ? 's' : ''} need immediate attention`;
+        }
+
+        // ─── Proactive Insight Panel ───────────────────────────────────
+        function initAttentionPanel() {
+            const container = document.getElementById('attentionCards');
+            if (!container) return;
+
+            // Shared data lookups
+            const topVuln = [...ciscoIQData.vulnerabilities]
+                .sort((a, b) => (_sevRank[a.severity] - _sevRank[b.severity]) || (b.daysOpen - a.daysOpen))[0];
+            const topMisconfig = [...ciscoIQData.assessments.misconfigurations]
+                .sort((a, b) => _sevRank[a.riskLevel] - _sevRank[b.riskLevel])[0];
+            const s1s2Cases = ciscoIQData.supportCases.filter(c => c.severity === 'S1' || c.severity === 'S2');
+            const topCase = [...s1s2Cases].sort((a, b) => b.daysOpen - a.daysOpen)[0];
+            const topRenewal = [...ciscoIQData.renewals]
+                .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+            const sec = ciscoIQData.security;
+            const totalRenewalValue = ciscoIQData.renewals.reduce((s, c) => s + c.annualValue, 0);
+            const eolDevices = ciscoIQData.assets.filter(d => d.lifecycleStatus === 'End of Life');
+            const avgHealth = Math.round(ciscoIQData.assets.reduce((s, d) => s + d.healthScore, 0) / ciscoIQData.assets.length);
+            const critCVEs = ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length;
+
+            let cards;
+
+            if (activeViewPersona === 'engineer') {
+                // Technical focus: CVE severity + misconfiguration risk
+                cards = [
+                    { cls: 'severity-critical', icon: '🔴',
+                      headline: topVuln.cveId,
+                      summary: `${topVuln.severity} · ${topVuln.affectedDevices.length} devices · open ${topVuln.daysOpen}d`,
+                      query: `Tell me more about vulnerability ${topVuln.cveId} and its remediation plan` },
+                    { cls: 'severity-misconfig', icon: '🟡',
+                      headline: topMisconfig.deviceName,
+                      summary: topMisconfig.issue,
+                      query: `Tell me more about the ${topMisconfig.riskLevel}-risk misconfiguration on ${topMisconfig.deviceName}` },
+                    { cls: 'severity-support', icon: '🔵',
+                      headline: topCase.caseNumber,
+                      summary: `${topCase.severity} · ${topCase.daysOpen}d · ${topCase.status}`,
+                      query: `Tell me more about TAC case ${topCase.caseNumber} and its current status` },
+                    { cls: 'severity-renewal', icon: '🟣',
+                      headline: 'Contract Expiring',
+                      summary: `${topRenewal.contractId} · ${_fmtDollars(topRenewal.annualValue)} · ${_daysUntil(topRenewal.expiryDate)}d left`,
+                      query: `Tell me more about the expiring contract ${topRenewal.contractId} for ${topRenewal.productName}` }
+                ];
+            } else if (activeViewPersona === 'director') {
+                // Business focus: posture score + contract value at risk
+                cards = [
+                    { cls: 'severity-critical', icon: '🔴',
+                      headline: `Posture: ${sec.postureScore}/100`,
+                      summary: `Below 75 target · PCI-DSS ${sec.compliance.pciDss.status} · ${sec.compliance.pciDss.findings} findings`,
+                      query: `Show me our security posture and compliance status` },
+                    { cls: 'severity-misconfig', icon: '🟡',
+                      headline: `${_fmtDollars(totalRenewalValue)} At Risk`,
+                      summary: `${ciscoIQData.renewals.length} contracts · soonest in ${_daysUntil(topRenewal.expiryDate)}d`,
+                      query: `Show me the contracts and renewals coming up` },
+                    { cls: 'severity-support', icon: '🔵',
+                      headline: `${topCase.severity} Case Aging`,
+                      summary: `${topCase.caseNumber} · ${topCase.daysOpen}d without resolution · ${topCase.status}`,
+                      query: `Tell me more about TAC case ${topCase.caseNumber} and its current status` },
+                    { cls: 'severity-renewal', icon: '🟣',
+                      headline: 'Compliance Gap',
+                      summary: `PCI-DSS: ${sec.compliance.pciDss.findings} findings · SOX: ${sec.compliance.sox.findings} findings`,
+                      query: `Show me our security posture and compliance status` }
+                ];
+            } else {
+                // Relationship focus: customer health + renewal opportunity
+                cards = [
+                    { cls: 'severity-critical', icon: '🔴',
+                      headline: `Health: ${avgHealth}/100`,
+                      summary: `${critCVEs} critical CVEs · posture ${sec.postureScore}/100 · ${eolDevices.length} EOL devices`,
+                      query: `What needs my attention for this customer` },
+                    { cls: 'severity-misconfig', icon: '🟡',
+                      headline: `${_fmtDollars(totalRenewalValue)} Renewals`,
+                      summary: `${ciscoIQData.renewals.length} contracts · soonest in ${_daysUntil(topRenewal.expiryDate)}d`,
+                      query: `Show me the contracts and renewals coming up` },
+                    { cls: 'severity-support', icon: '🔵',
+                      headline: `${s1s2Cases.length} Escalations`,
+                      summary: `Longest: ${topCase.caseNumber} · ${topCase.daysOpen}d · ${topCase.status}`,
+                      query: `Show me the open TAC cases and support status` },
+                    { cls: 'severity-renewal', icon: '🟣',
+                      headline: `${eolDevices.length} EOL Refresh`,
+                      summary: `${eolDevices.map(d => d.name).join(', ')} — upgrade opportunity`,
+                      query: `Show me the device inventory and asset health` }
+                ];
+            }
+
+            container.innerHTML = cards.map(c => `
+                <div class="attention-card ${c.cls}">
+                    <div class="card-icon">${c.icon}</div>
+                    <div class="card-headline">${c.headline}</div>
+                    <div class="card-summary">${c.summary}</div>
+                    <button class="card-action" onclick="handleAttentionClick('${c.query.replace(/'/g, "\\'")}')">View Details</button>
+                </div>
+            `).join('');
+        }
+
+        function handleAttentionClick(query) {
+            // Pipe through the normal chat flow so the unified router handles it
+            const input = document.getElementById('messageInput');
+            input.value = query;
+            sendCustomMessage();
+        }
+
         function initChat() {
+            const config = viewPersonaConfig[activeViewPersona];
             const typing = showTypingIndicator();
             setTimeout(() => {
                 typing.remove();
-                addMessage(initialMessage.role, initialMessage.text, initialMessage.suggestions);
-            }, 1200);
+                // Build persona-specific greeting with data-driven suggestion buttons
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message assistant';
+                let html = `
+                    <div class="message-header">
+                        <div class="avatar">C</div>
+                        <div class="role-label">CIQ Assistant</div>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    </div>
+                    <div class="message-bubble">${config.greeting}</div>
+                    <div class="suggestions">
+                `;
+                config.suggestions.forEach(s => {
+                    html += `<button class="suggestion-btn" onclick="handleAttentionClick('${s.replace(/'/g, "\\'")}')">${s}</button>`;
+                });
+                html += '</div>';
+                messageDiv.innerHTML = html;
+                chatContainer.appendChild(messageDiv);
+                scrollToBottom();
+            }, 1500);
         }
 
-        // Initialize on page load
+        function switchViewPersona(persona) {
+            if (persona === activeViewPersona) return;
+            activeViewPersona = persona;
+
+            // Update tab styling
+            document.querySelectorAll('.persona-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.persona === persona);
+            });
+
+            // Map to a conversation persona for the guided flow fallback
+            currentPersona = viewPersonaConfig[persona].mappedPersona;
+            conversation = personaConversations[currentPersona] || [];
+            currentStep = 0;
+
+            // Reset chat and reprioritize cards
+            chatContainer.innerHTML = '';
+            initAttentionPanel();
+            initChat();
+        }
+
+        // Initialize on page load — default to Network Engineer
+        currentPersona = viewPersonaConfig[activeViewPersona].mappedPersona;
+        conversation = personaConversations[currentPersona] || [];
+        initStatusBar();
+        initAttentionPanel();
         initChat();
         initVoiceRecognition();
     </script>
