@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cisco Customer Intelligence – Wells Fargo</title>
+    <title>Cisco IQ – Wells Fargo Network Operations</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -555,6 +555,49 @@
             color: #EF4444;
         }
 
+        /* ─── Status Bar ─── */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 16px;
+            padding: 8px 24px;
+            background: rgba(10, 10, 18, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            flex-shrink: 0;
+        }
+
+        .status-bar .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-bar .live-label {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .status-bar .divider {
+            color: rgba(255, 255, 255, 0.12);
+        }
+
+        .status-bar .urgent-count {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+
         /* ─── Persona Tab Bar ─── */
         .persona-tabs {
             display: flex;
@@ -706,6 +749,16 @@
                 font-size: 18px;
             }
 
+            .brand-text p {
+                font-size: 11px;
+            }
+
+            .status-bar {
+                padding: 6px 16px;
+                gap: 4px 10px;
+                font-size: 10px;
+            }
+
             .chat-container {
                 padding: 24px 20px;
             }
@@ -820,8 +873,8 @@
                 <div class="brand">
                     <div class="brand-icon">C</div>
                     <div class="brand-text">
-                        <h1>Cisco Customer Intelligence</h1>
-                        <p>Wells Fargo Network Operations</p>
+                        <h1>Cisco IQ</h1>
+                        <p>Wells Fargo Network Operations | AI-Powered Infrastructure Command Center</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -833,6 +886,17 @@
                 </div>
             </div>
         </div>
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">
+            <span class="live-indicator"><span class="live-dot"></span> <span class="live-label">Live</span></span>
+            <span class="divider">|</span>
+            <span>Last scanned: Feb 28, 2026</span>
+            <span class="divider">|</span>
+            <span>Data sources: 6 connected</span>
+            <span class="divider">|</span>
+            <span class="urgent-count" id="urgentCount"></span>
+        </div>
+
         <!-- Persona Tab Bar -->
         <div class="persona-tabs" id="personaTabs">
             <button class="persona-tab active" data-persona="engineer" onclick="switchViewPersona('engineer')">🛠 Network Engineer</button>
@@ -1466,12 +1530,6 @@
             }
         ];
 
-        const initialMessage = {
-            role: "assistant",
-            text: "Welcome to Cisco Customer Intelligence for Wells Fargo. I'm your copilot across your Cisco estate (networking, security, collaboration, data center). Which persona would you like to use today?",
-            suggestions: ["Network Ops (Global)", "Security Ops (SOC)", "Procurement / Asset Mgmt", "Executive Overview"]
-        };
-
         let conversation = [];
         let currentStep = 0;
         const chatContainer = document.getElementById('chatContainer');
@@ -1607,30 +1665,7 @@
                 btn.disabled = true;
             });
 
-            // Check if this is persona selection (no persona set yet)
-            if (!currentPersona) {
-                const personaName = initialMessage.suggestions[suggestionIndex];
-                currentPersona = personaName;
-                conversation = personaConversations[personaName];
-                currentStep = -1; // Will be incremented to 0
-
-                // Show user selection
-                addMessage('user', personaName);
-
-                // Show first message of selected persona
-                setTimeout(() => {
-                    const typing = showTypingIndicator();
-                    setTimeout(() => {
-                        typing.remove();
-                        const firstMessage = conversation[0];
-                        addMessage(firstMessage.role, firstMessage.text, firstMessage.suggestions);
-                        currentStep = 0;
-                    }, 1200);
-                }, 600);
-                return;
-            }
-
-            // Regular conversation flow
+            // Guided conversation flow
             currentStep++;
             if (currentStep < conversation.length) {
                 const userMessage = conversation[currentStep];
@@ -2074,6 +2109,17 @@
             }
         });
 
+        // ─── Status Bar ─────────────────────────────────────────────────
+        function initStatusBar() {
+            const criticalCVEs = ciscoIQData.vulnerabilities.filter(v => v.severity === 'Critical').length;
+            const agingS1S2 = ciscoIQData.supportCases.filter(c =>
+                (c.severity === 'S1' || c.severity === 'S2') && c.daysOpen > 30
+            ).length;
+            const count = criticalCVEs + agingS1S2;
+            const el = document.getElementById('urgentCount');
+            if (el) el.textContent = `⚠ ${count} item${count !== 1 ? 's' : ''} need immediate attention`;
+        }
+
         // ─── Proactive Insight Panel ───────────────────────────────────
         function initAttentionPanel() {
             const container = document.getElementById('attentionCards');
@@ -2199,7 +2245,7 @@
                 messageDiv.innerHTML = html;
                 chatContainer.appendChild(messageDiv);
                 scrollToBottom();
-            }, 1200);
+            }, 1500);
         }
 
         function switchViewPersona(persona) {
@@ -2225,6 +2271,7 @@
         // Initialize on page load — default to Network Engineer
         currentPersona = viewPersonaConfig[activeViewPersona].mappedPersona;
         conversation = personaConversations[currentPersona] || [];
+        initStatusBar();
         initAttentionPanel();
         initChat();
         initVoiceRecognition();
