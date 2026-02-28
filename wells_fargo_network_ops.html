@@ -555,6 +555,101 @@
             color: #EF4444;
         }
 
+        /* ─── Proactive Insight Panel ─── */
+        .attention-panel {
+            background: linear-gradient(135deg, rgba(20, 20, 35, 0.95) 0%, rgba(15, 15, 28, 0.98) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 16px 24px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .attention-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .attention-panel-header span.pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .attention-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .attention-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            border-left: 3px solid transparent;
+            cursor: default;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .attention-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .attention-card.severity-critical { border-left-color: #ef4444; }
+        .attention-card.severity-misconfig { border-left-color: #eab308; }
+        .attention-card.severity-support  { border-left-color: #3b82f6; }
+        .attention-card.severity-renewal  { border-left-color: #a855f7; }
+
+        .attention-card .card-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .attention-card .card-headline {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+
+        .attention-card .card-summary {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.4;
+        }
+
+        .attention-card .card-action {
+            margin-top: 4px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+            align-self: flex-start;
+        }
+
+        .attention-card .card-action:hover {
+            background: rgba(96, 165, 250, 0.2);
+            color: #93c5fd;
+        }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .container {
@@ -611,6 +706,20 @@
                 font-size: 10px;
                 bottom: -20px;
             }
+
+            .attention-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .attention-panel {
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .attention-cards {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -634,6 +743,17 @@
                 </div>
             </div>
         </div>
+        <!-- Proactive Insight Panel -->
+        <div class="attention-panel" id="attentionPanel">
+            <div class="attention-panel-header">
+                <span class="pulse-dot"></span>
+                Proactive Insights — Items Requiring Attention
+            </div>
+            <div class="attention-cards" id="attentionCards">
+                <!-- Cards populated by JS from ciscoIQData -->
+            </div>
+        </div>
+
         <div class="chat-container" id="chatContainer">
             <!-- Messages will be inserted here -->
         </div>
@@ -1607,6 +1727,155 @@
             }
         });
 
+        // ─── Proactive Insight Panel ───────────────────────────────────
+        function initAttentionPanel() {
+            const container = document.getElementById('attentionCards');
+            if (!container) return;
+
+            const severityRank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+
+            // Card 1 — Highest-severity CVE (longest open as tiebreaker)
+            const topVuln = [...ciscoIQData.vulnerabilities]
+                .sort((a, b) => (severityRank[a.severity] - severityRank[b.severity]) || (b.daysOpen - a.daysOpen))[0];
+
+            // Card 2 — Highest-risk misconfiguration
+            const topMisconfig = [...ciscoIQData.assessments.misconfigurations]
+                .sort((a, b) => severityRank[a.riskLevel] - severityRank[b.riskLevel])[0];
+
+            // Card 3 — Oldest S1/S2 TAC case
+            const topCase = [...ciscoIQData.supportCases]
+                .filter(c => c.severity === 'S1' || c.severity === 'S2')
+                .sort((a, b) => b.daysOpen - a.daysOpen)[0];
+
+            // Card 4 — Soonest expiring contract
+            const topRenewal = [...ciscoIQData.renewals]
+                .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0];
+
+            const daysUntilExpiry = Math.ceil((new Date(topRenewal.expiryDate) - new Date()) / 86400000);
+
+            const cards = [
+                {
+                    cls: 'severity-critical',
+                    icon: '🔴',
+                    headline: topVuln.cveId,
+                    summary: `${topVuln.severity} · ${topVuln.affectedDevices.length} device${topVuln.affectedDevices.length > 1 ? 's' : ''} · open ${topVuln.daysOpen} days`,
+                    query: `Tell me more about vulnerability ${topVuln.cveId} and its remediation plan`
+                },
+                {
+                    cls: 'severity-misconfig',
+                    icon: '🟡',
+                    headline: topMisconfig.deviceName,
+                    summary: topMisconfig.issue,
+                    query: `Tell me more about the ${topMisconfig.riskLevel}-risk misconfiguration on ${topMisconfig.deviceName}`
+                },
+                {
+                    cls: 'severity-support',
+                    icon: '🔵',
+                    headline: topCase.caseNumber,
+                    summary: `${topCase.severity} · ${topCase.daysOpen} days · ${topCase.status}`,
+                    query: `Tell me more about TAC case ${topCase.caseNumber} and its current status`
+                },
+                {
+                    cls: 'severity-renewal',
+                    icon: '🟣',
+                    headline: 'Contract Expiring',
+                    summary: `${topRenewal.contractId} · $${(topRenewal.annualValue / 1000).toFixed(0)}K · ${daysUntilExpiry} days left`,
+                    query: `Tell me more about the expiring contract ${topRenewal.contractId} for ${topRenewal.productName}`
+                }
+            ];
+
+            container.innerHTML = cards.map(c => `
+                <div class="attention-card ${c.cls}">
+                    <div class="card-icon">${c.icon}</div>
+                    <div class="card-headline">${c.headline}</div>
+                    <div class="card-summary">${c.summary}</div>
+                    <button class="card-action" onclick="handleAttentionClick('${c.query.replace(/'/g, "\\'")}')">View Details</button>
+                </div>
+            `).join('');
+        }
+
+        function handleAttentionClick(query) {
+            // Show user message in chat
+            addMessage('user', query);
+
+            // Generate detailed response from ciscoIQData
+            setTimeout(() => {
+                const typing = showTypingIndicator();
+                setTimeout(() => {
+                    typing.remove();
+                    const response = generateAttentionResponse(query);
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message assistant';
+                    messageDiv.innerHTML = `
+                        <div class="message-header">
+                            <div class="avatar">C</div>
+                            <div class="role-label">Cisco AI Assistant</div>
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                        <div class="message-bubble">${response}</div>
+                    `;
+                    chatContainer.appendChild(messageDiv);
+                    scrollToBottom();
+                }, 1200);
+            }, 600);
+        }
+
+        function generateAttentionResponse(query) {
+            const q = query.toLowerCase();
+
+            if (q.includes('cve-')) {
+                const cveMatch = query.match(/CVE-[\d-]+/i);
+                const cve = cveMatch && ciscoIQData.vulnerabilities.find(v => v.cveId.toLowerCase() === cveMatch[0].toLowerCase());
+                if (cve) {
+                    return `<strong>${cve.cveId}</strong> — ${cve.severity} Severity<br><br>` +
+                        `<strong>Affected devices (${cve.affectedDevices.length}):</strong> ${cve.affectedDevices.join(', ')}<br>` +
+                        `<strong>Days open:</strong> ${cve.daysOpen}<br>` +
+                        `<strong>Recommended fix:</strong> ${cve.recommendedFix}<br><br>` +
+                        `I can draft a remediation change plan, stage a pilot deployment, or export this to ServiceNow. What would you like to do?`;
+                }
+            }
+
+            if (q.includes('misconfiguration') || q.includes('misconfig')) {
+                const device = ciscoIQData.assessments.misconfigurations.find(m => q.includes(m.deviceName.toLowerCase()));
+                if (device) {
+                    return `<strong>Configuration Issue — ${device.deviceName}</strong><br><br>` +
+                        `<strong>Risk level:</strong> ${device.riskLevel}<br>` +
+                        `<strong>Finding:</strong> ${device.issue}<br>` +
+                        `<strong>Assessment date:</strong> ${ciscoIQData.assessments.lastAssessmentDate}<br>` +
+                        `<strong>Total config drift:</strong> ${ciscoIQData.assessments.configDriftCount} devices drifted from golden config<br><br>` +
+                        `I can push a remediation config, open a ServiceNow change request, or schedule a maintenance window. How would you like to proceed?`;
+                }
+            }
+
+            if (q.includes('sr-') || q.includes('tac case')) {
+                const srMatch = query.match(/SR-\d+/i);
+                const sr = srMatch && ciscoIQData.supportCases.find(c => c.caseNumber === srMatch[0]);
+                if (sr) {
+                    return `<strong>TAC Case ${sr.caseNumber}</strong> — ${sr.severity}<br><br>` +
+                        `<strong>Title:</strong> ${sr.title}<br>` +
+                        `<strong>Status:</strong> ${sr.status}<br>` +
+                        `<strong>Days open:</strong> ${sr.daysOpen}<br>` +
+                        `<strong>Assigned engineer:</strong> ${sr.assignedEngineer}<br><br>` +
+                        `I can escalate this case, request a callback from the assigned engineer, or attach additional diagnostics. What would you like?`;
+                }
+            }
+
+            if (q.includes('con-') || q.includes('contract') || q.includes('expiring')) {
+                const conMatch = query.match(/CON-[\w-]+/i);
+                const con = conMatch && ciscoIQData.renewals.find(r => r.contractId === conMatch[0]);
+                if (con) {
+                    const daysLeft = Math.ceil((new Date(con.expiryDate) - new Date()) / 86400000);
+                    return `<strong>Contract ${con.contractId}</strong><br><br>` +
+                        `<strong>Product:</strong> ${con.productName}<br>` +
+                        `<strong>Expiry date:</strong> ${con.expiryDate} (${daysLeft} days remaining)<br>` +
+                        `<strong>Annual value:</strong> $${con.annualValue.toLocaleString()}<br><br>` +
+                        `I can generate a renewal quote with 1/3/5-year co-term options, route to Procurement for approval, or schedule a review with your Cisco account team. What's your preference?`;
+                }
+            }
+
+            return generateSmartResponse(query).text;
+        }
+
         function initChat() {
             const typing = showTypingIndicator();
             setTimeout(() => {
@@ -1616,6 +1885,7 @@
         }
 
         // Initialize on page load
+        initAttentionPanel();
         initChat();
         initVoiceRecognition();
     </script>
