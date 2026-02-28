@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cisco IQ – Wells Fargo Network Operations</title>
+    <title>CIQ – WF Financial Network Operations</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -873,8 +873,8 @@
                 <div class="brand">
                     <div class="brand-icon">C</div>
                     <div class="brand-text">
-                        <h1>Cisco IQ</h1>
-                        <p>Wells Fargo Network Operations | AI-Powered Infrastructure Command Center</p>
+                        <h1>CIQ</h1>
+                        <p>WF Financial Network Operations | AI-Powered Infrastructure Command Center</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -946,7 +946,7 @@
     </div>
 
     <script>
-        // ─── Cisco IQ Simulated Network Operational Data (Wells Fargo) ───
+        // ─── CIQ Simulated Network Operational Data (WF Financial) ───
         const ciscoIQData = {
             assets: [
                 { name: "WF-RTR-CLT-01", type: "Router", model: "Cisco ASR 1006-X", datacenter: "Charlotte", healthScore: 92, lifecycleStatus: "Active" },
@@ -1032,7 +1032,7 @@
                 mappedPersona: "Executive Overview"
             },
             partner: {
-                greeting: "Good morning. Wells Fargo has 3 critical vulnerabilities and an S2 case escalated to BU. Two renewal opportunities total $876K. Want to review customer health?",
+                greeting: "Good morning. WF Financial has 3 critical vulnerabilities and an S2 case escalated to BU. Two renewal opportunities total $876K. Want to review customer health?",
                 suggestions: ["Review customer health", "Show renewal opportunities", "Check open escalations"],
                 mappedPersona: "Procurement / Asset Mgmt"
             }
@@ -1634,7 +1634,7 @@
             messageDiv.className = `message ${role}`;
 
             const avatarLetter = role === 'assistant' ? 'C' : 'W';
-            const roleName = role === 'assistant' ? 'Cisco AI Assistant' : 'Wells Fargo Network Ops';
+            const roleName = role === 'assistant' ? 'CIQ Assistant' : 'WF Financial Network Ops';
 
             let html = `
                 <div class="message-header">
@@ -1705,7 +1705,7 @@
             const opening = _tone(
                 `<strong>${cve.cveId}</strong> is a ${cve.severity}-severity advisory affecting ${n} device${n > 1 ? 's' : ''}, open for ${cve.daysOpen} days.`,
                 `<strong>${cve.cveId}</strong> (${cve.severity}) is creating unpatched exposure on ${n} production device${n > 1 ? 's' : ''}. It's been open ${cve.daysOpen} days — risk is growing.`,
-                `<strong>${cve.cveId}</strong> (${cve.severity}) is impacting ${n} device${n > 1 ? 's' : ''} in the Wells Fargo environment. Open ${cve.daysOpen} days — this is a proactive remediation opportunity.`
+                `<strong>${cve.cveId}</strong> (${cve.severity}) is impacting ${n} device${n > 1 ? 's' : ''} in the WF Financial environment. Open ${cve.daysOpen} days — this is a proactive remediation opportunity.`
             );
             const action = _tone(
                 `I'd recommend staging a remediation pilot starting with the lowest-risk device. Want me to draft a change plan or export to ServiceNow?`,
@@ -1722,7 +1722,7 @@
             const opening = _tone(
                 `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days — currently <em>${sr.status}</em>.`,
                 `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) has been open ${sr.daysOpen} days. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is approaching SLA risk for your operations team.' : ''}`,
-                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) is open ${sr.daysOpen} days for Wells Fargo. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is a customer satisfaction risk — consider a proactive check-in.' : ''}`
+                `<strong>TAC Case ${sr.caseNumber}</strong> (${sr.severity}) is open ${sr.daysOpen} days for WF Financial. Status: <em>${sr.status}</em>. ${sr.daysOpen >= 14 ? 'This is a customer satisfaction risk — consider a proactive check-in.' : ''}`
             );
             const action = _tone(
                 (sr.daysOpen >= 14 ? `This case is aging — consider requesting a management escalation or callback. ` : ``) + `Want me to escalate, request a callback, or attach additional diagnostics?`,
@@ -1757,7 +1757,7 @@
             const opening = _tone(
                 `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk finding from the ${ciscoIQData.assessments.lastAssessmentDate} assessment.`,
                 `<strong>${m.deviceName}</strong> has a <strong>${m.riskLevel}</strong>-risk misconfiguration that could create compliance exposure. Detected ${ciscoIQData.assessments.lastAssessmentDate}.`,
-                `Assessment on ${ciscoIQData.assessments.lastAssessmentDate} flagged a <strong>${m.riskLevel}</strong>-risk issue on <strong>${m.deviceName}</strong> in the Wells Fargo environment.`
+                `Assessment on ${ciscoIQData.assessments.lastAssessmentDate} flagged a <strong>${m.riskLevel}</strong>-risk issue on <strong>${m.deviceName}</strong> in the WF Financial environment.`
             );
             const action = _tone(
                 `Want me to push a remediation config, open a change request, or schedule a maintenance window?`,
@@ -1782,7 +1782,7 @@
             let html = _tone(
                 `You have <strong>${v.length} open CVEs</strong> — ${bySev.Critical} critical, ${bySev.High} high, ${bySev.Medium} medium — mapped to your device inventory.`,
                 `<strong>${bySev.Critical} critical vulnerabilities</strong> are creating unpatched exposure across ${totalDevices} production devices. Total open advisories: ${v.length}.`,
-                `Wells Fargo has <strong>${v.length} open CVEs</strong> (${bySev.Critical} critical) affecting ${totalDevices} devices. This is a remediation services opportunity.`
+                `WF Financial has <strong>${v.length} open CVEs</strong> (${bySev.Critical} critical) affecting ${totalDevices} devices. This is a remediation services opportunity.`
             ) + `<br><br>`;
 
             top5.forEach(c => {
@@ -1808,7 +1808,7 @@
             let html = _tone(
                 `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong>, with ${anomalies.length} recent anomalies and compliance gaps in both PCI-DSS and SOX.`,
                 `Security posture is <strong>${sec.postureScore}/${sec.postureMax}</strong> — below the 75-point target. Compliance gaps in PCI-DSS and SOX create audit exposure.`,
-                `Wells Fargo security posture: <strong>${sec.postureScore}/${sec.postureMax}</strong>. Compliance gaps present an opportunity for security assessment services.`
+                `WF Financial security posture: <strong>${sec.postureScore}/${sec.postureMax}</strong>. Compliance gaps present an opportunity for security assessment services.`
             ) + `<br><br>`;
 
             anomalies.forEach(a => {
@@ -1836,7 +1836,7 @@
             let html = _tone(
                 `You have <strong>${a.length} monitored devices</strong> across ${dcs} datacenters — average health ${avgHealth}/100, with ${eol.length} End of Life and ${eos.length} End of Sale.`,
                 `<strong>${a.length} devices</strong> across ${dcs} datacenters. Average health ${avgHealth}/100. <strong>${eol.length} EOL devices</strong> are no longer receiving security patches — operational risk.`,
-                `Wells Fargo has <strong>${a.length} devices</strong> across ${dcs} datacenters (avg health ${avgHealth}/100). <strong>${eol.length} EOL</strong> and ${eos.length} EOS devices present refresh opportunity.`
+                `WF Financial has <strong>${a.length} devices</strong> across ${dcs} datacenters (avg health ${avgHealth}/100). <strong>${eol.length} EOL</strong> and ${eos.length} EOS devices present refresh opportunity.`
             ) + `<br><br>`;
 
             sorted.slice(0, 5).forEach(d => {
@@ -1863,7 +1863,7 @@
             let html = _tone(
                 `Last assessment <strong>(${asmts.lastAssessmentDate})</strong> found ${sorted.length} misconfigurations, with ${asmts.configDriftCount} devices drifted from golden config.`,
                 `Assessment from <strong>${asmts.lastAssessmentDate}</strong>: ${sorted.length} misconfigurations found, ${asmts.configDriftCount} devices off golden config. This creates compliance and operational risk.`,
-                `Wells Fargo assessment (${asmts.lastAssessmentDate}): ${sorted.length} misconfigurations, ${asmts.configDriftCount} config drift. Remediation engagement opportunity.`
+                `WF Financial assessment (${asmts.lastAssessmentDate}): ${sorted.length} misconfigurations, ${asmts.configDriftCount} config drift. Remediation engagement opportunity.`
             ) + `<br><br>`;
 
             sorted.slice(0, 5).forEach(m => {
@@ -1887,7 +1887,7 @@
             let html = _tone(
                 `You have <strong>${cases.length} open TAC cases</strong> — ${s1s2.length} at S1/S2 severity.`,
                 `<strong>${cases.length} open TAC cases</strong>, ${s1s2.length} at critical severity. ${aging.length > 0 ? `${aging.length} case${aging.length > 1 ? 's' : ''} aging beyond SLA — operational risk.` : ''}`,
-                `Wells Fargo has <strong>${cases.length} open TAC cases</strong> (${s1s2.length} S1/S2). ${aging.length > 0 ? `${aging.length} aging beyond 2 weeks — customer satisfaction risk.` : ''}`
+                `WF Financial has <strong>${cases.length} open TAC cases</strong> (${s1s2.length} S1/S2). ${aging.length > 0 ? `${aging.length} aging beyond 2 weeks — customer satisfaction risk.` : ''}`
             );
             if (activeViewPersona === 'engineer' && aging.length > 0) {
                 html += ` <strong>${aging.length}</strong> ha${aging.length > 1 ? 've' : 's'} been open over 2 weeks.`;
@@ -1946,7 +1946,7 @@
             let html = _tone(
                 `Here's your cross-domain priority digest — items that need attention right now.`,
                 `Here's your executive summary — key risks and actions across the Cisco estate.`,
-                `Here's the Wells Fargo customer health summary — key risks and partner action items.`
+                `Here's the WF Financial customer health summary — key risks and partner action items.`
             ) + `<br><br>`;
 
             html += _tone(
@@ -2075,7 +2075,7 @@
                     let html = `
                         <div class="message-header">
                             <div class="avatar">C</div>
-                            <div class="role-label">Cisco AI Assistant</div>
+                            <div class="role-label">CIQ Assistant</div>
                             <div class="message-time">${getCurrentTime()}</div>
                         </div>
                         <div class="message-bubble">${response.text}</div>
@@ -2232,7 +2232,7 @@
                 let html = `
                     <div class="message-header">
                         <div class="avatar">C</div>
-                        <div class="role-label">Cisco AI Assistant</div>
+                        <div class="role-label">CIQ Assistant</div>
                         <div class="message-time">${getCurrentTime()}</div>
                     </div>
                     <div class="message-bubble">${config.greeting}</div>
