@@ -17,7 +17,7 @@ proactive, persona-aware intelligence for enterprise network operations.
 
 ## Live Demo
 
-https://nwadmark.github.io/CIQ-Wells-Convo/wells_fargo_network_ops.html
+[View Prototype →](https://nwadmark.github.io/CIQ-Wells-Convo/wells_fargo_network_ops.html)
 
 ## Scenario
 
