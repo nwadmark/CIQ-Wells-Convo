@@ -1,31 +1,35 @@
-# CIQ Wells Convo
+# CIQ Assistant — Network Operations Prototype
 
-##  CIQ AI Assistant – WF Network Ops Prototype
-
-An AI-powered conversational assistant prototype built for CIQ, 
-demonstrating intelligent self-service for enterprise network operations teams.
+An AI-powered conversational assistant prototype demonstrating
+proactive, persona-aware intelligence for enterprise network operations.
 
 ## What It Does
 
-- Persona-based AI assistant supporting multiple roles: Network Ops, Executive, TAC
-- Natural language Q&A for network infrastructure queries
-- Voice input support via Web Speech API (speak your question, it auto-sends)
-- Smart responses to queries like "What are the top risks?", "How do I file a TAC case?", "Show me PSIRTs"
-- TAC Integration: file support tickets via voice or text
-- Graceful degradation if browser doesn't support voice
-
-## How to Run Locally
-
-1. Clone the repo
-2. Run `python3 -m http.server 8000`
-3. Open `http://localhost:8000/wells_fargo_network_ops.html`
+- Proactive insight panel surfacing top priorities across vulnerabilities,
+  assessments, support cases, and renewals — without waiting to be asked
+- 3-persona switcher: Network Engineer, IT Director, Partner/CSM —
+  each with different priorities, card ordering, and response tone
+- Data-driven chat responses pulling from a simulated operational
+  data layer across 6 domains
+- Quick action bar with 5 one-tap shortcuts for common workflows
+- Voice input support via Web Speech API
+- Fully mobile responsive
 
 ## Live Demo
 
-[View on GitHub Pages](https://nwadmark.github.io/CIQ-Wells-Convo/wells_fargo_network_ops.html)
+https://nwadmark.github.io/CIQ-Wells-Convo/wells_fargo_network_ops.html
+
+## Scenario
+
+WF Financial Network Operations — fictional scenario using
+fully synthetic data. No real customer data used.
 
 ## Built With
 
-- Vanilla HTML/CSS/JavaScript
+- Vanilla HTML, CSS, JavaScript (no framework dependencies)
 - Web Speech API for voice input
 - Claude Code (AI-assisted development)
+
+## Status
+
+Prototype / vision artifact. Not connected to production data.
